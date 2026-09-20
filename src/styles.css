@@ -92,7 +92,7 @@ button:active:not(:disabled) { transform: translateY(1px); }
 
 /* One desktop viewport; definite tracks prevent implicit rows and shrinking maps. */
 .commute-screen { height: 100dvh; min-height: 700px; padding: 0 30px 12px; display: grid; grid-template-rows: 100px 62px minmax(0, 1fr) 76px; }
-.commute-header { display: grid; grid-template-columns: 210px 1fr auto; align-items: center; gap: 32px; }
+.commute-header { display: grid; grid-template-columns: 210px 1fr auto; align-items: center; gap: 32px; padding-right: 72px; }
 .commute-brand strong { display: block; font-size: 28px; letter-spacing: -.06em; font-weight: 600; }
 .commute-brand span { color: var(--muted); font-size: 12px; }
 .commute-mission span { display: block; font-size: 16px; margin-bottom: 4px; }
@@ -269,5 +269,6 @@ button:active:not(:disabled) { transform: translateY(1px); }
 /* Desktop height adaptation only. Mobile is deliberately outside this reset. */
 @media (min-height: 950px) { .commute-screen { padding-inline: 40px; grid-template-rows: 110px 68px minmax(0, 1fr) 88px; } .commute-stage { grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; } .subject-situation h1 { font-size: 24px; } .narrative-meter { margin-block: 10px; } }
 @media (max-height: 800px) { .commute-subject > .fly-avatar { margin-bottom: 8px; min-height: 100px; } .subject-situation h1 { font-size: 19px; } .subject-situation p { margin-bottom: 10px; } .narrative-mood { margin-bottom: 10px; } .fly-brain { padding-top: 8px; } .fly-brain svg { height: 24px; margin-top: 5px; } .arrival-summary { margin-bottom: 8px; } .arrival-summary dl { gap: 6px; margin-bottom: 8px; } .landing h1 { font-size: 88px; } .route-row { padding-block: 19px; } }
+@media (max-width: 860px) { .commute-header { padding-right: 72px; gap: 20px; } }
 @media (max-width: 860px) { .brain-report__figure { grid-template-columns: 1fr; } .brain-report__viewer .brain-canvas { min-height: 460px; } .brain-inspector { padding-top: 20px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
