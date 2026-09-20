@@ -134,7 +134,7 @@ de emociones biológicas de *Drosophila*.
 ## Validación y límites
 
 - `npm run typecheck` y `npm run build`: pasan. Advertencia de tamaño de chunk de MapLibre existente, no un error.
-- `npm test`: 16 pruebas, incluida la comprobación 95/253, validación de los 95 skeletons estáticos, rechazo de parent inexistente, semántica de color y reducción de movimiento. Propagación dirigida, normalización, decaimiento, fallback e independencia del ánimo siguen cubiertos.
+- `npm test`: 19 pruebas, incluida la comprobación 95/253, validación de los 95 skeletons estáticos, rechazo de parent inexistente, semántica de color y reducción de movimiento. Propagación dirigida, normalización, decaimiento, fallback e independencia del ánimo siguen cubiertos.
 - `python -m unittest discover -s scripts -p 'test_*.py' -v`: 6 pruebas offline de los extractores: conectividad, parser de skeleton, topología/parent, simplificación determinista, preservación de ramas y transform global finito. Los IDs de prueba son ficticios, nunca exportados como datos reales.
 - La extracción de skeletons sí consultó neuPrint localmente durante desarrollo con el token procesado solo en memoria. La verificación de frontend no vuelve a certificar la existencia remota del dataset.
 - Ninguna de estas pruebas demuestra fidelidad electrofisiológica, reproducción de conducta ni inferencia emocional. El panel no explica científicamente el estado de ánimo de la mosca.

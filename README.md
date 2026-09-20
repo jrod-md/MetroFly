@@ -9,10 +9,10 @@ el protagonista. El humor está en el viaje, no en acumular instrumentos cientí
 
 ## Ejecutar
 
-Node.js 20.19+ o 22.12+ y npm:
+Node.js >=22.12.0 y npm. Para una instalación reproducible, usa el lockfile:
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
@@ -20,6 +20,11 @@ Usa la dirección local que muestra Vite. El mapa MapLibre usa teselas de
 OpenStreetMap y necesita conexión; los planes, el reloj y los datos MaleCNS son
 locales. No hay backend, cuenta, base de datos, telemetría ni llamadas a neuPrint
 desde el navegador. Las corridas se guardan solo en memoria durante la sesión.
+La interfaz está disponible en español e inglés: español es el idioma inicial y la
+preferencia se conserva localmente mediante `localStorage`.
+
+No hay variables de entorno requeridas en producción. `NEUPRINT_TOKEN` solo se usa
+para regenerar datos científicos de forma local, como se documenta en `MALECNS.md`.
 
 ## La experiencia
 
@@ -150,7 +155,7 @@ npm test
 npm run build
 ```
 
-Las 16 pruebas cubren 1.000 semillas de 5 de Mayo y 1.000 de Pirata, continuaciones,
+Las 19 pruebas cubren 1.000 semillas de 5 de Mayo y 1.000 de Pirata, continuaciones,
 repetibilidad, balance temporal, reproducción, geografía, fallback y propagación
 neural. Incluyen una comprobación del artefacto 95/253 en las tres rutas, validación
 del asset de skeletons, rechazo de parents inválidos, color semántico y reducción
@@ -176,7 +181,8 @@ No se observaron errores de consola en las pestañas probadas. No es una auditor
 de accesibilidad ni una prueba de todos los navegadores.
 
 MapLibre se carga aparte. Vite puede advertir que su chunk supera 500 kB; no es
-un error de compilación. `npm run build` produce la aplicación estática en `dist/`.
+un error de compilación. `npm run build` produce la aplicación estática en `dist/`,
+lista para hosting estático.
 
 Puntos de edición: `src/components/SimulationScreen.tsx` (escena), `src/styles.css`
 (sistema visual), `src/data/routes.ts` (tiempos), `src/data/continuations.ts`
