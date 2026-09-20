@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
+import { setWorkerUrl } from 'maplibre-gl'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import type { GeoJSONSource, LngLatBoundsLike, Map as MapLibreMap, Marker, StyleSpecification } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { getLocation, getRouteGeometry, LOCATIONS } from '../data/geo'
 import type { SimulationPlan, SimulationState } from '../types/simulation'
 import { positionOnPath, segmentPath } from '../utils/routeGeometry'
 import { useTranslation } from '../i18n'
+
+setWorkerUrl(workerUrl)
 
 interface MapPanelProps {
   plan: SimulationPlan
