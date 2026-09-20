@@ -1,19 +1,23 @@
 import { EVENT_DEFINITIONS } from '../data/events'
+import { eventPresentation, getEventMessage } from '../i18n'
 import { resolveContinuation } from '../data/continuations'
 import { SIMULATION_LIMITS } from '../data/scenarios'
 import type { MoodSnapshot, SegmentRun, SimulationEvent, SimulationPlan, SimulationResult, SimulationState } from '../types/simulation'
 import type { RouteSegment, TransitRoute } from '../types/transit'
 import { addMinutes, getDepartureTime } from '../utils/time'
 import { calculateNarrativeSuffering } from './mood'
-import { createRandom, normalizeSeed, pick, randomInteger } from './random'
+import { createRandom, normalizeSeed, randomInteger } from './random'
 
 const makeEvent = (type: SimulationEvent['type'], atMinute: number, random: () => number, suffix = ''): SimulationEvent => {
   const definition = EVENT_DEFINITIONS[type]
+  const messageVariant = Math.floor(random() * eventPresentation.es[definition.messageKey].length)
   return {
     id: `${type}-${atMinute}-${Math.floor(random() * 10_000)}`,
     type,
     atMinute,
-    message: `${pick(random, definition.messages)}${suffix}`,
+    message: `${getEventMessage('es', definition.messageKey, messageVariant)}${suffix}`,
+    messageKey: definition.messageKey,
+    messageVariant,
     tone: definition.tone,
   }
 }

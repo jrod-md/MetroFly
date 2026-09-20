@@ -38,13 +38,12 @@ export interface TransitRoute {
   id: 'cinco-de-mayo' | 'e665' | 'pirata'
   name: string
   shortCode: string
-  description: string
+  presentationKey: 'cinco-de-mayo' | 'e665' | 'pirata'
   segments: RouteSegment[]
   referenceDurationMinutes: number | null
   uncertainty: UncertaintyLevel
   transfers: number
-  notes: string[]
-  observationalBasis: string
+  observationalBasisKey: 'cinco-de-mayo' | 'e665' | 'pirata'
   accent: string
   continuation?: string
 }

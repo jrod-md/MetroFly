@@ -5,6 +5,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { getLocation, getRouteGeometry, LOCATIONS } from '../data/geo'
 import type { SimulationPlan, SimulationState } from '../types/simulation'
 import { positionOnPath, segmentPath } from '../utils/routeGeometry'
+import { useTranslation } from '../i18n'
 
 interface MapPanelProps {
   plan: SimulationPlan
@@ -28,6 +29,7 @@ const mapStyle: StyleSpecification = {
 }
 
 export function MapPanel({ plan, state }: MapPanelProps) {
+  const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const markerRef = useRef<Marker | null>(null)
@@ -75,7 +77,7 @@ export function MapPanel({ plan, state }: MapPanelProps) {
       const flyElement = document.createElement('div')
       flyElement.className = 'map-fly'
       flyElement.setAttribute('role', 'img')
-      flyElement.setAttribute('aria-label', 'MF-01 · posición actual')
+      flyElement.setAttribute('aria-label', t('mapFlyAria'))
       flyElement.innerHTML = '<svg viewBox="0 0 40 40" aria-hidden="true"><g stroke="#082750" stroke-width="1.2"><path d="m18 18-9-8m10 12-13 1m13 2-8 12m11-19 9-8m-10 12 13 1m-13 2 8 12" fill="none" stroke="#e6b46d"/><ellipse cx="20" cy="26" rx="5" ry="9" fill="#c98d4d"/><path d="m16 26 8 0m-8 4h8"/><ellipse cx="12" cy="23" rx="5" ry="10" transform="rotate(35 12 23)" fill="#69c8ee" fill-opacity=".8"/><ellipse cx="28" cy="23" rx="5" ry="10" transform="rotate(-35 28 23)" fill="#69c8ee" fill-opacity=".8"/><ellipse cx="20" cy="18" rx="5" ry="7" fill="#c98d4d"/><circle cx="17" cy="10" r="4" fill="#e48860"/><circle cx="23" cy="10" r="4" fill="#e48860"/></g></svg>'
       markerRef.current = new maplibregl.Marker({ element: flyElement }).setLngLat(getLocation('work-costa-del-este').coordinates).addTo(map)
       fitRoute()
@@ -94,7 +96,7 @@ export function MapPanel({ plan, state }: MapPanelProps) {
       markerRef.current = null
       mapRef.current = null
     }
-  }, [plan])
+  }, [plan, t])
 
   useEffect(() => {
     const active = state.currentSegment
@@ -118,10 +120,10 @@ export function MapPanel({ plan, state }: MapPanelProps) {
   }, [plan, ready, state.currentSegment, state.elapsedMinutes, state.progress])
 
   return (
-    <section className="map-panel instrument-panel" aria-label="Mapa del recorrido">
-      <div className="panel-label"><span>El recorrido de MF-01</span></div>
+    <section className="map-panel instrument-panel" aria-label={t('mapAria')}>
+      <div className="panel-label"><span>{t('mapTitle')}</span></div>
       <div ref={containerRef} className="map-panel__canvas" />
-      <div className="map-panel__legend"><span><i className="legend-dot legend-dot--origin" />Costa del Este</span><span><i className="legend-dot legend-dot--destination" />UTP</span><small>Trazado aproximado · no es navegación</small></div>
+      <div className="map-panel__legend"><span><i className="legend-dot legend-dot--origin" />Costa del Este</span><span><i className="legend-dot legend-dot--destination" />UTP</span><small>{t('mapApproximate')}</small></div>
     </section>
   )
 }

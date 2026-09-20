@@ -261,6 +261,10 @@ button:active:not(:disabled) { transform: translateY(1px); }
 .comparison-table tbody tr:hover { background: var(--surface); }
 .comparison__actions { margin: 25px 0; }
 .empty-state { padding: 50px 0; color: var(--muted); }
+.language-switch { position: fixed; z-index: 20; top: 18px; right: 24px; display: flex; gap: 5px; align-items: center; color: var(--muted); font: 11px var(--mono); }
+.language-switch button { appearance: none; border: 0; background: transparent; padding: 3px; color: var(--muted); font: inherit; cursor: pointer; }
+.language-switch button[aria-pressed="true"] { color: var(--cyan-light); text-decoration: underline; text-underline-offset: 3px; }
+.language-switch button:focus-visible { outline: 1px solid var(--cyan); outline-offset: 2px; }
 
 /* Desktop height adaptation only. Mobile is deliberately outside this reset. */
 @media (min-height: 950px) { .commute-screen { padding-inline: 40px; grid-template-rows: 110px 68px minmax(0, 1fr) 88px; } .commute-stage { grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; } .subject-situation h1 { font-size: 24px; } .narrative-meter { margin-block: 10px; } }

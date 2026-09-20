@@ -9,6 +9,7 @@ import { createSimulationPlan, createSimulationResult } from './simulation/engin
 import { getRoute } from './data/routes'
 import type { MoodSnapshot, SimulationPlan, SimulationResult } from './types/simulation'
 import type { TransitRoute } from './types/transit'
+import { LanguageProvider, LanguageSwitch } from './i18n'
 
 type Screen = 'landing' | 'routes' | 'simulation' | 'result' | 'comparison' | 'brain-report'
 
@@ -56,5 +57,5 @@ export default function App() {
     return <Landing onBegin={() => setScreen('routes')} />
   }, [completeSimulation, currentResult, plan, results, screen, seed])
 
-  return content
+  return <LanguageProvider><LanguageSwitch />{content}</LanguageProvider>
 }

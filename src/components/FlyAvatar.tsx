@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import type { SimulationState } from '../types/simulation'
+import { useTranslation } from '../i18n'
 
 type FlyPose = 'idle' | 'moving' | 'waiting' | 'alarmed' | 'relieved' | 'defeated'
 interface FlyAvatarProps { state?: SimulationState; large?: boolean; paused?: boolean }
@@ -11,18 +12,15 @@ const getPose = (state?: SimulationState): FlyPose => {
   if (state.currentSegmentType === 'wait') return 'waiting'
   return 'moving'
 }
-const LABELS: Record<FlyPose, string> = {
-  idle: 'Lista para salir', moving: 'En movimiento', waiting: 'Esperando',
-  alarmed: 'En el tranque', defeated: 'La clase ya empezó', relieved: 'A tiempo',
-}
-
 // Original dorsal illustration: six articulated legs, two veined wings,
 // halteres, compound eyes and a dark rounded male abdomen.
 export function FlyAvatar({ state, large = false, paused = false }: FlyAvatarProps) {
+  const { t } = useTranslation()
   const id = useId().replaceAll(':', '')
   const pose = getPose(state)
+  const labels: Record<FlyPose, string> = { idle: t('flyIdle'), moving: t('flyMoving'), waiting: t('flyWaiting'), alarmed: t('flyAlarmed'), defeated: t('flyDefeated'), relieved: t('flyRelieved') }
   return (
-    <div className={`fly-avatar fly-avatar--${pose}${large ? ' fly-avatar--large' : ''}${paused || state?.finished ? ' is-frozen' : ''}`} role="img" aria-label={`Drosophila macho: ${LABELS[pose]}${paused ? ', reproducción en pausa' : ''}`}>
+    <div className={`fly-avatar fly-avatar--${pose}${large ? ' fly-avatar--large' : ''}${paused || state?.finished ? ' is-frozen' : ''}`} role="img" aria-label={t('flyAria', { pose: labels[pose], paused: paused ? t('flyPausedAria') : '' })}>
       <svg viewBox="0 0 360 320" aria-hidden="true">
         <defs>
           <linearGradient id={`${id}-shell`}><stop stopColor="#644326" /><stop offset=".38" stopColor="#edb76c" /><stop offset=".64" stopColor="#bc7b40" /><stop offset="1" stopColor="#482f28" /></linearGradient>
@@ -59,7 +57,7 @@ export function FlyAvatar({ state, large = false, paused = false }: FlyAvatarPro
           <path d="m175 104 5 9 5-9" fill="#80532f" />
         </g>
       </svg>
-      <span className="fly-avatar__pose">{paused ? 'Observación en pausa' : state?.finished && state.lateMinutes > 0 ? 'Tarde, pero aquí' : LABELS[pose]}</span>
+      <span className="fly-avatar__pose">{paused ? t('flyPaused') : state?.finished && state.lateMinutes > 0 ? t('flyLateHere') : labels[pose]}</span>
     </div>
   )
 }

@@ -25,6 +25,8 @@ export interface SimulationEvent {
   type: EventType
   atMinute: number
   message: string
+  messageKey: EventType
+  messageVariant: number
   tone: EventTone
 }
 

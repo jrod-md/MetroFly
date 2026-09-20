@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadSkeletonData } from '../neural/skeletons'
 import { SKELETON_COLORS, shouldAutoRotate } from '../neural/skeletonVisual'
 import type { SkeletonData } from '../types/skeleton'
+import { auditCopy, useTranslation } from '../i18n'
 
 type Activity = Record<string, number>
 interface FlyBrainSkeletonProps {
@@ -30,6 +31,7 @@ function useReducedMotion() {
 }
 
 export function FlyBrainSkeleton({ activity, paused = false, compact = false, rotationEnabled = true, resetViewToken = 0, selectedId = null, onSelect, onData, onViewInteraction }: FlyBrainSkeletonProps) {
+  const { language } = useTranslation(); const copy = auditCopy[language]
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [data, setData] = useState<SkeletonData | null>(null)
   const [failed, setFailed] = useState(false)
@@ -114,11 +116,11 @@ export function FlyBrainSkeleton({ activity, paused = false, compact = false, ro
   }, [compact, data, paused, reducedMotion, rotationEnabled, selectedId])
 
   const label = useMemo(() => {
-    if (!data) return 'Loading real morphology'
+    if (!data) return copy.loadingMorphology
     const selected = data.neurons.find(neuron => neuron.bodyId === selectedId)
-    return selected ? `Neuron ${selected.type ?? selected.bodyId}, body ID ${selected.bodyId}, selected. ${data.metadata.availableNeuronCount}/${data.metadata.requestedNeuronCount} centerline skeletons` : `${data.metadata.availableNeuronCount}/${data.metadata.requestedNeuronCount} centerline skeletons`
-  }, [data, selectedId])
-  if (failed) return <div className="brain-fallback">Real morphology unavailable. The commute continues without it.</div>
+    return selected ? copy.selectedSkeleton.replace('{type}', selected.type ?? String(selected.bodyId)).replace('{bodyId}', String(selected.bodyId)).replace('{available}', String(data.metadata.availableNeuronCount)).replace('{requested}', String(data.metadata.requestedNeuronCount)) : copy.skeletonCount.replace('{available}', String(data.metadata.availableNeuronCount)).replace('{requested}', String(data.metadata.requestedNeuronCount))
+  }, [copy, data, selectedId])
+  if (failed) return <div className="brain-fallback">{copy.morphologyUnavailable}</div>
   const selectAt = (canvas: HTMLCanvasElement, clientX: number, clientY: number) => {
     if (!onSelect) return
     const bounds = canvas.getBoundingClientRect()
@@ -147,5 +149,5 @@ export function FlyBrainSkeleton({ activity, paused = false, compact = false, ro
   }} onPointerCancel={() => { pointer.current = null; setDragging(false) }} onWheel={event => {
     if (compact) return
     event.preventDefault(); camera.current.zoom = Math.max(.6, Math.min(5, camera.current.zoom * Math.exp(-event.deltaY * .0015))); dirty.current = true; onViewInteraction?.()
-  }} aria-label={`${label}. Real MaleCNS morphology projected in Canvas 2D.`} role="img" className={dragging ? 'is-dragging' : ''} /><span>{label}</span></div>
+  }} aria-label={copy.canvasAria.replace('{label}', label)} role="img" className={dragging ? 'is-dragging' : ''} /><span>{label}</span></div>
 }

@@ -10,6 +10,7 @@ import { FlyAvatar } from './FlyAvatar'
 import { FlyBrain } from './FlyBrain'
 import { getLocation } from '../data/geo'
 import { formatClock, formatTimeFromElapsed } from '../utils/time'
+import { getEventMessage, useTranslation } from '../i18n'
 
 const MapPanel = lazy(() => import('./MapPanel').then((module) => ({ default: module.MapPanel })))
 
@@ -24,6 +25,7 @@ interface SimulationScreenProps {
 }
 
 export function SimulationScreen({ plan, onComplete, completed = false, onSummary, onRerun, onCompare, onChooseRoute }: SimulationScreenProps) {
+  const { language, t } = useTranslation()
   const [playback, dispatch] = useReducer(playbackReducer, { minute: completed ? plan.totalMinutes : 0, total: plan.totalMinutes, speed: 'normal', mode: completed ? 'finished' : 'running' })
   const reported = useRef(completed)
   const [logOpen, setLogOpen] = useState(false)
@@ -35,7 +37,8 @@ export function SimulationScreen({ plan, onComplete, completed = false, onSummar
   const restart = () => { reported.current = false; setLogOpen(false); dispatch({ type: 'restart' }) }
   const event = state.events.at(-1)
   const segment = state.currentSegment?.segment
-  const situation = state.finished ? 'UTP. Por fin.' : segment?.bottleneck ? 'Atrapada en Ricardo J. Alfaro.' : state.currentSegmentType === 'wait' ? 'Still waiting.' : segment?.name ?? 'Saliendo del trabajo.'
+  const situation = state.finished ? t('statusFinished') : segment?.bottleneck ? t('statusTraffic') : state.currentSegmentType === 'wait' ? t('statusWaiting') : state.currentSegmentType === 'walk' ? t('statusWalking') : state.currentSegmentType === 'transfer' ? t('statusTransfer') : state.currentSegmentType === 'metro' ? t('statusMetro') : state.currentSegmentType === 'bus' ? t('statusBus') : t('statusLeaving')
+  const eventMessage = event ? getEventMessage(language, event.messageKey, event.messageVariant) : t('eventFallback')
 
   useEffect(() => {
     if (playback.mode === 'finished' && !reported.current) {
@@ -50,36 +53,36 @@ export function SimulationScreen({ plan, onComplete, completed = false, onSummar
   return (
     <main className="commute-screen">
       <header className="commute-header">
-        <div className="commute-brand"><strong>MetroFly</strong><span>The 6 PM Class</span></div>
-        <div className="commute-mission"><span>Costa del Este → UTP</span><strong>Una mosca. Tu viaje al salir del trabajo.</strong><small>Salida 17:00 · Clase 18:00</small></div>
-        <div className={`commute-clock${state.classStarted ? ' is-late' : ''}`}><time>{formatClock(state.currentTime)}</time><span>{state.finished ? state.lateMinutes ? `${state.lateMinutes} min tarde` : 'Llegamos a tiempo' : state.classStarted ? elapsed === 60 ? 'Class has started.' : `La clase empezó hace ${state.lateMinutes} min` : `${60 - elapsed} min para llegar`}</span></div>
+        <div className="commute-brand"><strong>MetroFly</strong><span>{t('simulationTitle')}</span></div>
+        <div className="commute-mission"><span>Costa del Este → UTP</span><strong>{t('simulationMission')}</strong><small>{t('simulationSchedule')}</small></div>
+        <div className={`commute-clock${state.classStarted ? ' is-late' : ''}`}><time>{formatClock(state.currentTime)}</time><span>{state.finished ? state.lateMinutes ? t('minutesLate', { minutes: state.lateMinutes }) : t('arrivedOnTime') : state.classStarted ? elapsed === 60 ? t('classStarted') : t('classStartedAgo', { minutes: state.lateMinutes }) : t('minutesUntilClass', { minutes: 60 - elapsed })}</span></div>
       </header>
       <div className="commute-toolbar">
-        <div className="commute-route"><strong>{plan.route.name}</strong><span>Semilla {plan.seed}</span></div>
+        <div className="commute-route"><strong>{plan.route.name}</strong><span>{t('seed', { seed: plan.seed })}</span></div>
         <PlaybackControls playback={playback} dispatch={dispatch} onRestart={restart} />
       </div>
       <div className="commute-stage">
-        <Suspense fallback={<section className="map-panel panel-loading"><span>Cargando el mapa del recorrido…</span></section>}>
+        <Suspense fallback={<section className="map-panel panel-loading"><span>{t('mapLoading')}</span></section>}>
           <MapPanel plan={plan} state={state} />
         </Suspense>
-        <aside className="commute-subject" aria-label="Estado de MF-01">
+        <aside className="commute-subject" aria-label={t('subjectStatus')}>
           <div className="subject-identity"><strong>MF-01</strong><span>Drosophila melanogaster</span></div>
           <FlyAvatar state={state} paused={playback.mode === 'paused'} />
-          <div className="subject-situation"><span>{segment && segment.from !== segment.to ? 'Desde ' : ''}{getLocation(state.currentLocation).name}</span><h1>{situation}</h1><p>{state.finished ? 'Still operational.' : segment?.to !== segment?.from && segment ? `Hacia ${getLocation(segment.to).name}` : 'El bus llegará cuando llegue.'}</p></div>
-          {state.finished ? <section className="arrival-summary" aria-label="Resultado final">
-            <dl><div><dt>Viaje</dt><dd>{result.totalMinutes} min</dd></div><div><dt>Espera</dt><dd>{result.waitingMinutes} min</dd></div><div><dt>Transporte</dt><dd>{result.travelMinutes} min</dd></div><div><dt>A pie / conexiones</dt><dd>{result.walkingMinutes} min</dd></div></dl>
-            <button className="button button--primary" onClick={onSummary}>Ver resultado</button>
-            <div className="arrival-actions"><button className="text-button" onClick={onRerun}>Otro intento</button><button className="text-button" onClick={onChooseRoute}>Otra ruta</button><button className="text-button" onClick={onCompare}>Comparar</button></div>
-          </section> : <section className="narrative-mood" aria-label="Estado narrativo simulado">
-            {([{ key: 'hope', label: 'Esperanza' }, { key: 'anxiety', label: 'Sufrimiento' }, { key: 'regret', label: 'Arrepentimiento' }] as const).map(({ key, label }) => <div className={`narrative-meter narrative-meter--${key}`} key={key}><label htmlFor={`mood-${key}`}>{label}</label><meter id={`mood-${key}`} min={0} max={100} value={currentMood[key]} /><span>{currentMood[key]}</span></div>)}
-            <small><strong>Estado narrativo simulado.</strong> Modelo independiente de MaleCNS: interpreta condiciones del viaje, no emociones medidas.</small>
+          <div className="subject-situation"><span>{segment && segment.from !== segment.to ? t('from', { location: getLocation(state.currentLocation).name }) : getLocation(state.currentLocation).name}</span><h1>{situation}</h1><p>{state.finished ? t('stillOperational') : segment?.to !== segment?.from && segment ? t('toward', { location: getLocation(segment.to).name }) : t('busWhenItArrives')}</p></div>
+          {state.finished ? <section className="arrival-summary" aria-label={t('finalResult')}>
+            <dl><div><dt>{t('trip')}</dt><dd>{result.totalMinutes} min</dd></div><div><dt>{t('waiting')}</dt><dd>{result.waitingMinutes} min</dd></div><div><dt>{t('transport')}</dt><dd>{result.travelMinutes} min</dd></div><div><dt>{t('walkConnections')}</dt><dd>{result.walkingMinutes} min</dd></div></dl>
+            <button className="button button--primary" onClick={onSummary}>{t('viewResult')}</button>
+            <div className="arrival-actions"><button className="text-button" onClick={onRerun}>{t('runAgain')}</button><button className="text-button" onClick={onChooseRoute}>{t('chooseAnotherRoute')}</button><button className="text-button" onClick={onCompare}>{t('compare')}</button></div>
+          </section> : <section className="narrative-mood" aria-label={t('narrativeState')}>
+            {([{ key: 'hope', label: t('hope') }, { key: 'anxiety', label: t('suffering') }, { key: 'regret', label: t('regret') }] as const).map(({ key, label }) => <div className={`narrative-meter narrative-meter--${key}`} key={key}><label htmlFor={`mood-${key}`}>{label}</label><meter id={`mood-${key}`} min={0} max={100} value={currentMood[key]} /><span>{currentMood[key]}</span></div>)}
+            <small><strong>{t('narrativeState')}.</strong> {t('narrativeDetail')}</small>
           </section>}
           {!state.finished && <FlyBrain plan={plan} state={state} paused={playback.mode === 'paused'} />}
         </aside>
       </div>
       <footer className="commute-event">
-        <div aria-live="polite" aria-atomic="true"><time>{event ? formatTimeFromElapsed(event.atMinute) : '17:00'}</time><p>{event?.message ?? 'MF-01 sale del trabajo. La clase empieza a las seis.'}</p></div>
-        <button className="text-button" aria-expanded={logOpen} aria-controls="journey-log" onClick={() => setLogOpen(!logOpen)}>{logOpen ? 'Cerrar registro' : 'Ver registro del viaje'} {logOpen ? '↓' : '↑'}</button>
+        <div aria-live="polite" aria-atomic="true"><time>{event ? formatTimeFromElapsed(event.atMinute) : '17:00'}</time><p>{eventMessage}</p></div>
+        <button className="text-button" aria-expanded={logOpen} aria-controls="journey-log" onClick={() => setLogOpen(!logOpen)}>{logOpen ? t('closeJourneyLog') : t('openJourneyLog')} {logOpen ? '↓' : '↑'}</button>
         {logOpen && <div id="journey-log" className="journey-log"><EventLog events={state.events} /></div>}
       </footer>
     </main>

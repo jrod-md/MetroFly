@@ -5,10 +5,9 @@ import type { TransitRoute } from '../types/transit'
 export const ROUTES: TransitRoute[] = [
   {
     id: 'cinco-de-mayo', name: '5 de Mayo', shortCode: 'A / 5M',
-    description: 'El primer bus pasa rápido. El Metro ayuda. El gran tranque llega al final, por Ricardo J. Alfaro.',
+    presentationKey: 'cinco-de-mayo',
     referenceDurationMinutes: 120, uncertainty: 'high', transfers: 2,
-    observationalBasis: 'Esta ruta ha tomado alrededor de dos horas. El principal cuello de botella es el bus final hacia UTP.',
-    notes: ['S447 / S487 / S662 / S669', 'Primer bus: espera corta', 'Experiencia personal: ~2 h'],
+    observationalBasisKey: 'cinco-de-mayo',
     accent: '#68b9ff',
     segments: [
       { id: 'a-walk-1', type: 'walk', name: 'Salida del trabajo', from: 'work-costa-del-este', to: 'costa-del-este-stop', baseMinutes: 3, variabilityMinutes: 1, durationRange: [2, 4], narrative: 'Del trabajo a la parada en Costa del Este.' },
@@ -24,10 +23,9 @@ export const ROUTES: TransitRoute[] = [
   },
   {
     id: 'e665', name: 'E665', shortCode: 'B / E665',
-    description: 'Conexión hacia Cincuentenario. Se sabe que existe; verlo pasar es otra cuestión.',
+    presentationKey: 'e665',
     referenceDurationMinutes: null, uncertainty: 'unknown', transfers: 1,
-    observationalBasis: 'El autor conoce la ruta, pero nunca ha visto pasar personalmente el E665. Su espera real es desconocida.',
-    notes: ['Allegedly real', 'Personally observed: never', 'Confidence: questionable'],
+    observationalBasisKey: 'e665',
     accent: '#e6cf76',
     segments: [
       { id: 'b-walk-1', type: 'walk', name: 'Salida del trabajo', from: 'work-costa-del-este', to: 'costa-del-este-stop', baseMinutes: 4, variabilityMinutes: 1, durationRange: [3, 5], narrative: 'A la parada de Costa del Este.' },
@@ -41,10 +39,9 @@ export const ROUTES: TransitRoute[] = [
   },
   {
     id: 'pirata', name: 'Pirata / Diablo Rojo', shortCode: 'C / PIRATA',
-    description: 'Un camino más directo a Cincuentenario, con recogida informal. Menos vuelta, pero todavía un viaje largo.',
+    presentationKey: 'pirata',
     referenceDurationMinutes: 90, uncertainty: 'high', transfers: 1,
-    observationalBasis: 'Referencia aproximada de una hora y media, con unos cuarenta minutos hasta Cincuentenario. La continuación es oportunista.',
-    notes: ['Primer bus: ~40 min', 'M o C978 después del cruce', 'Abordaje informal'],
+    observationalBasisKey: 'pirata',
     accent: '#60cce8',
     segments: [
       { id: 'c-walk-1', type: 'walk', name: 'Buscar dónde abordar', from: 'work-costa-del-este', to: 'informal-pickup', baseMinutes: 4, variabilityMinutes: 2, durationRange: [2, 6], narrative: 'Salir del trabajo y buscar una oportunidad de abordaje.' },

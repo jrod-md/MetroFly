@@ -1,5 +1,6 @@
 import type { SimulationResult } from '../types/simulation'
 import { formatClock } from '../utils/time'
+import { useTranslation } from '../i18n'
 
 interface ComparisonScreenProps {
   results: SimulationResult[]
@@ -7,44 +8,37 @@ interface ComparisonScreenProps {
   onNewRun: () => void
 }
 
-const COLUMNS: { key: keyof SimulationResult; label: string; render?: (result: SimulationResult) => string }[] = [
-  { key: 'totalMinutes', label: 'Total', render: (result) => `${result.totalMinutes} min` },
-  { key: 'arrivalTime', label: 'Llegada', render: (result) => formatClock(result.arrivalTime) },
-  { key: 'lateMinutes', label: 'Retraso', render: (result) => `${result.lateMinutes} min` },
-  { key: 'waitingMinutes', label: 'Espera', render: (result) => `${result.waitingMinutes} min` },
-  { key: 'transfers', label: 'Conexiones' },
-  { key: 'peakAnxiety', label: 'Ansiedad máx.' },
-  { key: 'finalRegret', label: 'Arrepentimiento' },
-  { key: 'narrativeSuffering', label: 'Sufrimiento' },
-]
-
 export function ComparisonScreen({ results, onBack, onNewRun }: ComparisonScreenProps) {
+  const { t } = useTranslation()
+  const columns: { key: keyof SimulationResult; label: string; render?: (result: SimulationResult) => string }[] = [
+    { key: 'totalMinutes', label: t('total'), render: (result) => `${result.totalMinutes} min` }, { key: 'arrivalTime', label: t('arrival'), render: (result) => formatClock(result.arrivalTime) }, { key: 'lateMinutes', label: t('delay'), render: (result) => `${result.lateMinutes} min` }, { key: 'waitingMinutes', label: t('waiting'), render: (result) => `${result.waitingMinutes} min` }, { key: 'transfers', label: t('connections') }, { key: 'peakAnxiety', label: t('peakAnxiety') }, { key: 'finalRegret', label: t('regret') }, { key: 'narrativeSuffering', label: t('suffering') },
+  ]
   return (
     <main className="comparison page-shell">
-      <header className="topbar"><button type="button" className="text-button" onClick={onBack}>← ÚLTIMO RESULTADO</button><span>VIAJES DE ESTA SESIÓN</span></header>
+      <header className="topbar"><button type="button" className="text-button" onClick={onBack}>{t('comparisonBack')}</button><span>{t('comparisonSession')}</span></header>
       <section className="comparison__header reveal reveal--1">
-        <p className="eyebrow">Simulaciones completadas</p>
-        <h1>Viajes realizados,<br />uno al lado del otro.</h1>
-        <p>Cada fila corresponde a una simulación completada. Solo aparecen los recorridos que ya probaste.</p>
+        <p className="eyebrow">{t('comparisonEyebrow')}</p>
+        <h1>{t('comparisonHeading').split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}</h1>
+        <p>{t('comparisonIntro')}</p>
       </section>
       {results.length === 0 ? (
-        <div className="empty-state"><span>TODAVÍA NO HAY VIAJES</span><p>Completa un viaje para empezar a comparar.</p></div>
+        <div className="empty-state"><span>{t('noTrips')}</span><p>{t('noTripsHelp')}</p></div>
       ) : (
         <div className="comparison-table-wrap reveal reveal--2">
           <table className="comparison-table">
-            <thead><tr><th>Viaje / ruta</th>{COLUMNS.map((column) => <th key={column.key}>{column.label}</th>)}</tr></thead>
+            <thead><tr><th>{t('tripRoute')}</th>{columns.map((column) => <th key={column.key}>{column.label}</th>)}</tr></thead>
             <tbody>
               {results.map((result, index) => (
                 <tr key={result.id}>
-                  <th><span>0{index + 1}</span>{result.routeName}<small>semilla {result.seed}{result.continuation ? ` · ${result.continuation}` : ''}</small></th>
-                  {COLUMNS.map((column) => <td key={column.key}>{column.render ? column.render(result) : String(result[column.key])}</td>)}
+                  <th><span>0{index + 1}</span>{result.routeName}<small>{t('sessionSeed', { seed: result.seed })}{result.continuation ? ` · ${result.continuation}` : ''}</small></th>
+                  {columns.map((column) => <td key={column.key}>{column.render ? column.render(result) : String(result[column.key])}</td>)}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <div className="comparison__actions"><button className="button button--primary" type="button" onClick={onNewRun}>PROBAR OTRA RUTA</button></div>
+      <div className="comparison__actions"><button className="button button--primary" type="button" onClick={onNewRun}>{t('tryAnotherRoute')}</button></div>
     </main>
   )
 }
