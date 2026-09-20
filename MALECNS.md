@@ -1,10 +1,12 @@
-# MaleCNS: conectividad real, actividad simplificada
+# MaleCNS: conectividad y morfología reales, actividad simplificada
 
 ## Estado de esta entrega
 
-Se conserva el artefacto del commit `b859058`: **95 neuronas y 253 conexiones dirigidas de `male-cns:v1.0`**, en `src/data/generated/malecns_visual_motor.json`. Sus metadatos registran verificación de identidades, aristas y pesos por el extractor. El reset no altera el JSON ni repite consultas autenticadas a neuPrint.
+Se conserva el artefacto de conectividad: **95 neuronas y 253 conexiones dirigidas de `male-cns:v1.0`**, en `src/data/generated/malecns_visual_motor.json`. Sus metadatos registran verificación de identidades, aristas y pesos por el extractor.
 
-La UI muestra solo `FlyBrain`: un punto por neurona y el conteo con actividad simulada ≥0,1. El orden de los puntos es un listado, no anatomía ni topología. No hay inspector, timeline ni escena 3D. Un archivo ausente o inválido activa el fallback explícito de 11 nodos y 14 conexiones sintéticas. Las pruebas offline validan estructura y ejecución, no vuelven a certificar la existencia de neuronas en Janelia.
+`src/data/generated/malecns_skeletons.json` contiene la morfología de **95/95** de esos body IDs: **384,842** puntos fuente de skeleton y **71,301** puntos de render (18.53 % retenidos). Se obtuvo localmente desde el cliente oficial `neuprint-python==0.6.3` con `Client.fetch_skeleton(bodyId, heal=False, format='pandas')`. El retorno contiene `rowId`, `x`, `y`, `z`, `radius` y `link`, que MetroFly guarda como id, coordenadas, radio y parent. No hay token, consulta autenticada ni endpoint de neuPrint en el frontend.
+
+La UI usa Canvas 2D. El widget compacto acompaña a MF-01 y el informe opcional tras el resultado permite seleccionar una morfología. No hay WebGL, escena 3D ni dashboard durante el viaje. Si el JSON falla la validación o no puede cargarse, la ruta continúa y el widget declara que la morfología no está disponible.
 
 ## Fuentes y selección del circuito
 
@@ -45,6 +47,18 @@ Después de inspeccionar el esquema, reemplaza los marcadores siguientes por eti
 .\.venv\Scripts\python.exe scripts/extract_malecns.py --source-type "TIPO_VISUAL_VERIFICADO" --target-type "TIPO_DESCENDENTE_VERIFICADO"
 ```
 
+Para regenerar la morfología del conjunto de body IDs ya verificado, con el token
+temporalmente presente solo en el entorno del proceso:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/extract_malecns_skeletons.py --overwrite
+```
+
+El extractor carga los IDs exclusivamente del artefacto de conectividad, intenta
+todas las neuronas, valida referencias parent y coordenadas finitas, y no reemplaza
+el JSON hasta terminar una serialización válida. Una falla parcial queda registrada
+en `failures`/`missingBodyIds`; jamás se reemplaza por geometría inventada.
+
 Repite `--source-type` para los tipos visuales seleccionados. Alternativamente, usa `--source-id` y `--target-id` repetidos con IDs reales. El extractor comprueba que cada criterio solicitado exista, pero no puede determinar si la elección humana tiene sentido científico.
 
 ```powershell
@@ -80,7 +94,8 @@ Si el recorrido conectado queda por debajo de 50 nodos, se informa y se conserva
 | `source`, `target`, `weight` | Extremos de `ConnectsTo` y peso bruto del dataset; IDs serializados como cadenas |
 | `id` | Conversión del body ID a cadena para la UI |
 | `category`, `categoryBasis` | Rol de visualización elegido por MetroFly: fuentes visuales, destinos descendentes, intermediarias. NO clase biológica |
-| Posición y brillo en el widget | Índice en el listado y actividad simulada; no anatomía |
+| Centerline skeleton (`rowId`, x/y/z, radius, `link`) | Recuperación oficial de MaleCNS por neuPrint; geometry real preservada con transform global |
+| Posición y brillo en el widget | Proyección Canvas 2D de la morfología real y actividad simulada; no es anatomía funcional ni una grabación |
 | Actividad, estímulos y dinámica | Modelo de visualización de MetroFly, sin mediciones biológicas |
 
 La validación TypeScript comprueba estructura, procedencia declarada, conteos, IDs seguros/únicos, extremos existentes, pares únicos y pesos enteros positivos. **No autentica científicamente un archivo editado a mano**. La verificación contra neuPrint pertenece al extractor; el JSON generado debe tratarse como un artefacto revisado.
@@ -111,9 +126,9 @@ La historia neural se deriva exclusivamente de grafo, eventos y duración. No re
 ## Validación y límites
 
 - `npm run typecheck` y `npm run build`: pasan. Advertencia de tamaño de chunk de MapLibre existente, no un error.
-- `npm test`: 14 pruebas, incluidas las 13 previas y una comprobación del artefacto real de 95/253 en las tres rutas. Propagación dirigida, normalización, decaimiento, rechazo de datos inválidos, fallback e independencia del ánimo siguen cubiertos.
-- `python -m unittest discover -s scripts -p 'test_*.py' -v`: 3 pruebas offline del extractor, incluyendo rechazo de un peso modificado en la segunda lectura. Los IDs de prueba son ficticios, nunca exportados como datos reales.
-- Este reset no ejecuta `--inspect` ni consulta neuPrint: conserva la extracción y su verificación registrada en el baseline. No se afirma una revalidación en vivo del dataset.
+- `npm test`: 16 pruebas, incluida la comprobación 95/253, validación de los 95 skeletons estáticos, rechazo de parent inexistente, semántica de color y reducción de movimiento. Propagación dirigida, normalización, decaimiento, fallback e independencia del ánimo siguen cubiertos.
+- `python -m unittest discover -s scripts -p 'test_*.py' -v`: 6 pruebas offline de los extractores: conectividad, parser de skeleton, topología/parent, simplificación determinista, preservación de ramas y transform global finito. Los IDs de prueba son ficticios, nunca exportados como datos reales.
+- La extracción de skeletons sí consultó neuPrint localmente durante desarrollo con el token procesado solo en memoria. La verificación de frontend no vuelve a certificar la existencia remota del dataset.
 - Ninguna de estas pruebas demuestra fidelidad electrofisiológica, reproducción de conducta ni inferencia emocional. El panel no explica científicamente el estado de ánimo de la mosca.
 
 Rutas, calibración, geografía y Fly Mood permanecen sin cambios. No se añadió backend, ML, 3D ni trabajo móvil.

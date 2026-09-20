@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs'
 import { DEMO_NEURAL_GRAPH } from '../src/data/neural'
 import { chooseGraph, layoutGraph, validateRealGraph } from '../src/neural/graph'
 import { buildNeuralHistory, NEURAL_PARAMETERS, transitStimulus } from '../src/neural/activity'
+import { validateSkeletonData } from '../src/neural/skeletonValidation'
+import { SKELETON_COLORS, shouldAutoRotate } from '../src/neural/skeletonVisual'
 import { createSimulationPlan } from '../src/simulation/engine'
 import { getRoute } from '../src/data/routes'
 import { buildMoodHistory } from '../src/simulation/mood'
@@ -27,6 +29,28 @@ test('Committed MaleCNS artifact retains 95 real identities and 253 directed con
     assert.ok(history.every(frame => Object.values(frame.values).every(value => Number.isFinite(value) && value >= 0 && value <= 1)))
     assert.ok(history.some(frame => Object.values(frame.values).some(value => value >= 0.1)))
   }
+})
+
+test('Real skeleton loader validates the static official morphology asset and has a safe missing-parent rejection', () => {
+  const raw = JSON.parse(readFileSync('src/data/generated/malecns_skeletons.json', 'utf8'))
+  const skeletons = validateSkeletonData(raw)
+  assert.equal(skeletons.metadata.dataset, 'male-cns:v1.0')
+  assert.equal(skeletons.metadata.requestedNeuronCount, 95)
+  assert.equal(skeletons.metadata.availableNeuronCount, 95)
+  assert.ok(skeletons.metadata.originalPointCount > skeletons.metadata.simplifiedPointCount)
+  assert.ok(skeletons.neurons.every(neuron => neuron.points.every(point => Number.isFinite(point.x) && Number.isFinite(point.y) && Number.isFinite(point.z))))
+  const malformed = structuredClone(raw)
+  malformed.neurons[0].points.find((point: { parent: number }) => point.parent !== -1).parent = 999999999
+  assert.throws(() => validateSkeletonData(malformed), /parent/i)
+})
+
+test('Skeleton color semantics and rotation respect simulated pause and reduced motion', () => {
+  assert.deepEqual(SKELETON_COLORS.visual, [243, 107, 33])
+  assert.deepEqual(SKELETON_COLORS.descending, [105, 198, 217])
+  assert.equal(shouldAutoRotate(false, false, false), true)
+  assert.equal(shouldAutoRotate(true, false, false), false)
+  assert.equal(shouldAutoRotate(false, true, false), false)
+  assert.equal(shouldAutoRotate(false, false, true), false)
 })
 // Synthetic schema fixture ONLY. Never bundled or written as a MaleCNS extract.
 function schemaFixture(): NeuralGraphData {

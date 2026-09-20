@@ -8,9 +8,10 @@ interface ResultScreenProps {
   onChooseRoute: () => void
   onCompare: () => void
   onReview: () => void
+  onBrainReport: () => void
 }
 
-export function ResultScreen({ result, resultCount, onRunAgain, onChooseRoute, onCompare, onReview }: ResultScreenProps) {
+export function ResultScreen({ result, resultCount, onRunAgain, onChooseRoute, onCompare, onReview, onBrainReport }: ResultScreenProps) {
   const success = result.lateMinutes === 0
   return (
     <main className="result-screen page-shell">
@@ -33,6 +34,7 @@ export function ResultScreen({ result, resultCount, onRunAgain, onChooseRoute, o
       </section>
       <div className="result-screen__status"><span>MF-01</span><strong>Still operational.</strong><p>Neuronas capaces de resolver el tranque: 0.</p></div>
       <div className="result-actions reveal reveal--3">
+        <button className="button button--brain" type="button" onClick={onBrainReport}>VER QUÉ PASÓ EN SU CEREBRO</button>
         <button className="button button--secondary" type="button" onClick={onReview}>REVISAR VIAJE TERMINADO</button>
         <button className="button button--primary" type="button" onClick={onRunAgain}>OTRO INTENTO</button>
         <button className="button button--secondary" type="button" onClick={onChooseRoute}>CAMBIAR DE RUTA</button>

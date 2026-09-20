@@ -34,7 +34,7 @@ desde el navegador. Las corridas se guardan solo en memoria durante la sesión.
    cifras: total, espera, transporte y caminatas/conexiones. Se puede revisar el
    resultado, probar otra semilla, elegir otra ruta o comparar corridas.
 
-El ánimo visible se limita a esperanza, ansiedad y arrepentimiento. Los seis
+El ánimo visible se limita a esperanza, sufrimiento y arrepentimiento. Los seis
 estados internos del modelo narrativo anterior se conservan para compatibilidad
 y comparación; no se muestran series temporales ni seis gráficas. **El ánimo es
 ficción narrativa, no una inferencia neurocientífica.**
@@ -94,28 +94,38 @@ seis patas, ojos facetados y abdomen segmentado). No fue redibujada en este rese
 Conserva idle, waiting, moving, alarmed, defeated y relieved; pausa y final detienen
 sus animaciones. Respeta movimiento reducido y no depende de imágenes externas.
 
-## MaleCNS, pequeño y separado
+## MaleCNS: morfología real, actividad simulada
 
-El commit base ya incluía el JSON real: **95 neuronas, 253 conexiones dirigidas,
-`male-cns:v1.0`**. Se conserva sin alteración. `FlyBrain` muestra puntos de actividad
-y un conteo, no una escena anatómica. La conectividad proviene de MaleCNS; la
-actividad se calcula con el modelo simplificado ya existente y no determina el ánimo.
+El grafo real conservado contiene **95 neuronas y 253 conexiones dirigidas de
+`male-cns:v1.0`**. Esta entrega añade `malecns_skeletons.json`: **95/95
+centerline skeletons oficiales**, con 384,842 puntos fuente y 71,301 puntos de
+render. Las líneas del widget y del informe opcional son morfología real; no son
+un diagrama de conexiones.
+
+La extracción se hace solo durante desarrollo con `neuprint-python` y el cliente
+oficial de neuPrint (`Client.fetch_skeleton(..., format='pandas')`). El navegador
+carga un JSON estático, sin token ni llamadas a neuPrint. Una simplificación RDP
+por cadenas no ramificadas conserva raíces, bifurcaciones y hojas; después se
+aplica una única caja y escala global a toda la población, por lo que se mantienen
+las relaciones espaciales entre neuronas.
+
+`FlyBrainSkeleton` usa Canvas 2D y una proyección ortográfica con ajuste automático
+al rectángulo. El informe puede rotar lentamente la cámara; el widget compacto,
+la pausa y `prefers-reduced-motion: reduce` la dejan inmóvil. Naranja = entrada
+visual, crema = intermediarias y cian = salida descendente/motora. La actividad
+existente de MetroFly ajusta opacidad, grosor y un brillo discreto: no es una
+grabación de un cerebro real y no determina el ánimo ficticio.
 
 Fuente: HHMI Janelia FlyEM, CC-BY-4.0. [Metodología y límites](MALECNS.md).
-Si el artefacto falta o no valida, se etiqueta claramente el grafo demo.
-No se han vuelto a consultar identidades/pesos en neuPrint durante este reset.
+Si el asset de morfología no carga, la simulación continúa e informa el fallback;
+no se fabrican esqueletos. La conectividad permanece sin alteración.
 
-## Reset y arquitectura
+## Arquitectura
 
-Baseline: `b859058` (`feat: integrate verified MaleCNS visual-to-descending subgraph`).
-El trabajo no confirmado anterior está en **un único stash**:
-`abandoned neural-ui experiments before MetroFly reset`. No se recuperó nada de él,
-ni se borró, ni se hizo commit o push durante el reset.
-
-Se retiraron el dashboard neuronal, inspector, gráficas de ánimo y paneles
-redundantes. No se restauraron 3D, POV, timelines ni Lab Data. Se eliminó Recharts
-al retirar su última gráfica. React, TypeScript, Vite y MapLibre siguen siendo la
-arquitectura. El motor, las rutas, las continuaciones y la geografía no se reescribieron.
+React, TypeScript, Vite y MapLibre siguen siendo la arquitectura. El motor, las
+rutas, las continuaciones y la geografía no se reescribieron. No hay Three.js,
+WebGL, backend, cuenta, base de datos ni dashboard neuronal: el informe científico
+aparece solamente después del resultado.
 
 La UI usa grafito, texto marfil, cian moderado, coral para retraso y ámbar para MF-01.
 Sans-serif para lectura; mono para reloj, semilla e identificadores. No se ha
@@ -129,9 +139,12 @@ npm test
 npm run build
 ```
 
-Las 14 pruebas cubren 1.000 semillas de 5 de Mayo y 1.000 de Pirata, continuaciones,
+Las 16 pruebas cubren 1.000 semillas de 5 de Mayo y 1.000 de Pirata, continuaciones,
 repetibilidad, balance temporal, reproducción, geografía, fallback y propagación
-neural. Incluyen una comprobación del artefacto 95/253 en las tres rutas.
+neural. Incluyen una comprobación del artefacto 95/253 en las tres rutas, validación
+del asset de skeletons, rechazo de parents inválidos, color semántico y reducción
+de movimiento. Las 6 pruebas Python validan extracción/conectividad y simplificación
+de skeletons.
 No equivalen a datos de tránsito ni a validación biológica.
 
 Verificación manual del reset (20 de septiembre de 2026): las tres rutas se

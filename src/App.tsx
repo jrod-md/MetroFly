@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ComparisonScreen } from './components/ComparisonScreen'
 import { Landing } from './components/Landing'
 import { ResultScreen } from './components/ResultScreen'
+import { BrainReport } from './components/BrainReport'
 import { RouteSelection } from './components/RouteSelection'
 import { SimulationScreen } from './components/SimulationScreen'
 import { createSimulationPlan, createSimulationResult } from './simulation/engine'
@@ -9,7 +10,7 @@ import { getRoute } from './data/routes'
 import type { MoodSnapshot, SimulationPlan, SimulationResult } from './types/simulation'
 import type { TransitRoute } from './types/transit'
 
-type Screen = 'landing' | 'routes' | 'simulation' | 'result' | 'comparison'
+type Screen = 'landing' | 'routes' | 'simulation' | 'result' | 'comparison' | 'brain-report'
 
 const makeSeed = (): number => Math.floor(10_000 + Math.random() * 89_999)
 
@@ -49,7 +50,8 @@ export default function App() {
     if (screen === 'landing') return <Landing onBegin={() => setScreen('routes')} />
     if (screen === 'routes') return <RouteSelection seed={seed} onSeedChange={setSeed} onSelect={selectRoute} onBack={() => setScreen('landing')} />
     if (screen === 'simulation' && plan) return <SimulationScreen key={plan.id} plan={plan} completed={results.some((result) => result.id === plan.id)} onComplete={completeSimulation} onSummary={() => setScreen('result')} onRerun={runAgain} onCompare={() => setScreen('comparison')} onChooseRoute={() => setScreen('routes')} />
-    if (screen === 'result' && currentResult) return <ResultScreen result={currentResult} resultCount={results.length} onRunAgain={runAgain} onChooseRoute={() => setScreen('routes')} onCompare={() => setScreen('comparison')} onReview={() => setScreen('simulation')} />
+    if (screen === 'result' && currentResult && plan) return <ResultScreen result={currentResult} resultCount={results.length} onRunAgain={runAgain} onChooseRoute={() => setScreen('routes')} onCompare={() => setScreen('comparison')} onReview={() => setScreen('simulation')} onBrainReport={() => setScreen('brain-report')} />
+    if (screen === 'brain-report' && plan) return <BrainReport plan={plan} onBack={() => setScreen('result')} />
     if (screen === 'comparison') return <ComparisonScreen results={results} onBack={() => setScreen(currentResult ? 'result' : 'routes')} onNewRun={() => setScreen('routes')} />
     return <Landing onBegin={() => setScreen('routes')} />
   }, [completeSimulation, currentResult, plan, results, screen, seed])

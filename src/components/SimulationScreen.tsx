@@ -71,10 +71,10 @@ export function SimulationScreen({ plan, onComplete, completed = false, onSummar
             <button className="button button--primary" onClick={onSummary}>Ver resultado</button>
             <div className="arrival-actions"><button className="text-button" onClick={onRerun}>Otro intento</button><button className="text-button" onClick={onChooseRoute}>Otra ruta</button><button className="text-button" onClick={onCompare}>Comparar</button></div>
           </section> : <section className="narrative-mood" aria-label="Ánimo narrativo">
-            {([{ key: 'hope', label: 'Esperanza' }, { key: 'anxiety', label: 'Ansiedad' }, { key: 'regret', label: 'Arrepentimiento' }] as const).map(({ key, label }) => <div className={`narrative-meter narrative-meter--${key}`} key={key}><label htmlFor={`mood-${key}`}>{label}</label><meter id={`mood-${key}`} min={0} max={100} value={currentMood[key]} /><span>{currentMood[key]}</span></div>)}
+            {([{ key: 'hope', label: 'Esperanza' }, { key: 'anxiety', label: 'Sufrimiento' }, { key: 'regret', label: 'Arrepentimiento' }] as const).map(({ key, label }) => <div className={`narrative-meter narrative-meter--${key}`} key={key}><label htmlFor={`mood-${key}`}>{label}</label><meter id={`mood-${key}`} min={0} max={100} value={currentMood[key]} /><span>{currentMood[key]}</span></div>)}
             <small>Ánimo ficticio, no una medición biológica.</small>
           </section>}
-          {!state.finished && <FlyBrain plan={plan} state={state} />}
+          {!state.finished && <FlyBrain plan={plan} state={state} paused={playback.mode === 'paused'} />}
         </aside>
       </div>
       <footer className="commute-event">
