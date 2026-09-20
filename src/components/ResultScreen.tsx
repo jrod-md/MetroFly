@@ -30,12 +30,8 @@ export function ResultScreen({ result, resultCount, onRunAgain, onChooseRoute, o
         <div><span>ESPERANDO</span><strong>{result.waitingMinutes} min</strong></div>
         <div><span>EN TRANSPORTE</span><strong>{result.travelMinutes} min</strong></div>
         <div><span>A PIE / CONEXIONES</span><strong>{result.walkingMinutes} min</strong></div>
-        <div><span>CONEXIONES</span><strong>{result.transfers}</strong></div>
-        <div><span>ANSIEDAD MÁXIMA</span><strong>{result.peakAnxiety} / 100</strong></div>
-        <div><span>ARREPENTIMIENTO FINAL</span><strong>{result.finalRegret} / 100</strong></div>
-        <div className="result-metrics__suffering"><span>SUFRIMIENTO NARRATIVO</span><strong>{result.narrativeSuffering} / 100</strong></div>
       </section>
-      <div className="result-screen__status reveal reveal--3"><span>MALE CNS</span><strong>SIGUE OPERATIVO</strong><p>El ánimo es parte del relato, no una medición biológica.</p></div>
+      <div className="result-screen__status"><span>MF-01</span><strong>Still operational.</strong><p>Neuronas capaces de resolver el tranque: 0.</p></div>
       <div className="result-actions reveal reveal--3">
         <button className="button button--secondary" type="button" onClick={onReview}>REVISAR VIAJE TERMINADO</button>
         <button className="button button--primary" type="button" onClick={onRunAgain}>OTRO INTENTO</button>

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { readFileSync } from 'node:fs'
 import { DEMO_NEURAL_GRAPH } from '../src/data/neural'
 import { chooseGraph, layoutGraph, validateRealGraph } from '../src/neural/graph'
 import { buildNeuralHistory, NEURAL_PARAMETERS, transitStimulus } from '../src/neural/activity'
@@ -10,6 +11,23 @@ import type { SimulationEvent, EventType } from '../src/types/simulation'
 import type { NeuralGraphData } from '../src/types/neural'
 
 const event = (type: EventType, atMinute: number): SimulationEvent => ({ id: `${type}-${atMinute}`, type, atMinute, tone: 'neutral', message: 'Test fixture, not biological data' })
+
+test('Committed MaleCNS artifact retains 95 real identities and 253 directed connections', () => {
+  const raw = readFileSync('src/data/generated/malecns_visual_motor.json', 'utf8')
+  const { graph, notice } = chooseGraph(raw, DEMO_NEURAL_GRAPH)
+  assert.equal(notice, null)
+  assert.equal(graph.metadata.realConnectivity, true)
+  assert.equal(graph.metadata.dataset, 'male-cns:v1.0')
+  assert.equal(graph.nodes.length, 95)
+  assert.equal(graph.edges.length, 253)
+  for (const id of ['cinco-de-mayo', 'e665', 'pirata'] as const) {
+    const plan = createSimulationPlan(getRoute(id), 42)
+    const history = buildNeuralHistory(graph, plan.events, plan.totalMinutes)
+    assert.equal(history.length, plan.totalMinutes + 1)
+    assert.ok(history.every(frame => Object.values(frame.values).every(value => Number.isFinite(value) && value >= 0 && value <= 1)))
+    assert.ok(history.some(frame => Object.values(frame.values).some(value => value >= 0.1)))
+  }
+})
 // Synthetic schema fixture ONLY. Never bundled or written as a MaleCNS extract.
 function schemaFixture(): NeuralGraphData {
   return {

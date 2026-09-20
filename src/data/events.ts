@@ -23,5 +23,5 @@ export const EVENT_DEFINITIONS: Record<EventType, EventDefinition> = {
   ARRIVED_CINCUENTENARIO: { type: 'ARRIVED_CINCUENTENARIO', tone: 'neutral', messages: ['Llegamos a Cincuentenario. Falta cruzar y conectar.'] },
   ARRIVED_5_DE_MAYO: { type: 'ARRIVED_5_DE_MAYO', tone: 'neutral', messages: ['Llegamos a 5 de Mayo. Hasta aquí, sin mayor complicación.'] },
   CLASS_STARTED: { type: 'CLASS_STARTED', tone: 'critical', messages: ['Class has started.', 'Son las 18:00. La clase ya empezó.'] },
-  ARRIVED_UTP: { type: 'ARRIVED_UTP', tone: 'positive', messages: ['Llegamos a la UTP. Male CNS: still operational.'] },
+  ARRIVED_UTP: { type: 'ARRIVED_UTP', tone: 'positive', messages: ['Llegamos a la UTP. MF-01: still operational.'] },
 }

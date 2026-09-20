@@ -18,11 +18,14 @@ Experimental, sobrio, absurdo. Humor seco y escaso; español natural con algunas
 
 ## Anti-references
 
-No dashboard corporativo, landing SaaS, clipart infantil, saturación de memes ni rediseño total. No incorporar rutas de transporte que el autor no considera. No trabajar en móvil hasta una solicitud explícita.
+No dashboard corporativo, landing SaaS, clipart infantil, saturación de memes ni laboratorio neuronal. No 3D, POV, WebGL adicional al mapa, timelines ni inspectores científicos. No incorporar rutas que el autor no considera. No trabajar en móvil hasta una solicitud explícita.
 
 ## Design Principles
 
-- Conservar la arquitectura y la identidad de laboratorio existentes.
+- Conservar la arquitectura, las rutas calibradas y la geografía; abandonar la identidad de dashboard de laboratorio.
+- Una mosca intenta llegar a clase: mapa dominante, MF-01 protagonista, reloj y evento actual. La simulación cabe en un viewport de escritorio.
+- Grafito, texto marfil, cian moderado para sistema, coral para retraso y ámbar para la mosca. Sans-serif en UI; mono solo en reloj, semilla e identificadores.
+- MaleCNS puede acompañar como widget pequeño. Su conectividad es real; su actividad es ilustrativa y no determina emociones.
 - Hacer que la demora ocurra en el tramo correcto, tanto en tiempos como en narrativa.
 - Dejar que el usuario controle el ritmo y revise el final con calma.
 - Separar supuestos, observaciones y visualización ilustrativa.

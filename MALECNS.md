@@ -2,9 +2,9 @@
 
 ## Estado de esta entrega
 
-**No se ha extraído ningún circuito real en este entorno.** No hay `NEUPRINT_TOKEN` configurado. La aplicación usa **DEMO GRAPH: 11 nodos sintéticos y 14 conexiones sintéticas**, sin body IDs biológicos. Hay **0 neuronas reales y 0 conexiones reales exportadas**. No existe un JSON de producción ficticio.
+Se conserva el artefacto del commit `b859058`: **95 neuronas y 253 conexiones dirigidas de `male-cns:v1.0`**, en `src/data/generated/malecns_visual_motor.json`. Sus metadatos registran verificación de identidades, aristas y pesos por el extractor. El reset no altera el JSON ni repite consultas autenticadas a neuPrint.
 
-La integración está preparada para consumir `src/data/generated/malecns_visual_motor.json`. La extracción autenticada, la inspección del esquema en vivo y la comprobación científica del recorrido siguen pendientes. Las pruebas offline verifican el código, no la existencia de neuronas en Janelia.
+La UI muestra solo `FlyBrain`: un punto por neurona y el conteo con actividad simulada ≥0,1. El orden de los puntos es un listado, no anatomía ni topología. No hay inspector, timeline ni escena 3D. Un archivo ausente o inválido activa el fallback explícito de 11 nodos y 14 conexiones sintéticas. Las pruebas offline validan estructura y ejecución, no vuelven a certificar la existencia de neuronas en Janelia.
 
 ## Fuentes y selección del circuito
 
@@ -80,7 +80,7 @@ Si el recorrido conectado queda por debajo de 50 nodos, se informa y se conserva
 | `source`, `target`, `weight` | Extremos de `ConnectsTo` y peso bruto del dataset; IDs serializados como cadenas |
 | `id` | Conversión del body ID a cadena para la UI |
 | `category`, `categoryBasis` | Rol de visualización elegido por MetroFly: fuentes visuales, destinos descendentes, intermediarias. NO clase biológica |
-| Posición, radio, grosor, brillo | Layout por rol; radio por grado dentro del subgrafo; grosor relativo; brillo simulado |
+| Posición y brillo en el widget | Índice en el listado y actividad simulada; no anatomía |
 | Actividad, estímulos y dinámica | Modelo de visualización de MetroFly, sin mediciones biológicas |
 
 La validación TypeScript comprueba estructura, procedencia declarada, conteos, IDs seguros/únicos, extremos existentes, pares únicos y pesos enteros positivos. **No autentica científicamente un archivo editado a mano**. La verificación contra neuPrint pertenece al extractor; el JSON generado debe tratarse como un artefacto revisado.
@@ -111,9 +111,9 @@ La historia neural se deriva exclusivamente de grafo, eventos y duración. No re
 ## Validación y límites
 
 - `npm run typecheck` y `npm run build`: pasan. Advertencia de tamaño de chunk de MapLibre existente, no un error.
-- `npm test`: 13 pruebas, incluidas las 7 previas de tránsito/reproducción y 6 nuevas del grafo/modelo. Propagación dirigida con retraso, normalización, decaimiento, rechazo de datos inválidos, fallback, independencia del ánimo y fixture sintético de 200 nodos.
+- `npm test`: 14 pruebas, incluidas las 13 previas y una comprobación del artefacto real de 95/253 en las tres rutas. Propagación dirigida, normalización, decaimiento, rechazo de datos inválidos, fallback e independencia del ánimo siguen cubiertos.
 - `python -m unittest discover -s scripts -p 'test_*.py' -v`: 3 pruebas offline del extractor, incluyendo rechazo de un peso modificado en la segunda lectura. Los IDs de prueba son ficticios, nunca exportados como datos reales.
-- `--inspect` sin token: termina sin exportar. La consulta autenticada y la compatibilidad efectiva con el esquema vivo **no se han probado**.
+- Este reset no ejecuta `--inspect` ni consulta neuPrint: conserva la extracción y su verificación registrada en el baseline. No se afirma una revalidación en vivo del dataset.
 - Ninguna de estas pruebas demuestra fidelidad electrofisiológica, reproducción de conducta ni inferencia emocional. El panel no explica científicamente el estado de ánimo de la mosca.
 
 Rutas, calibración, geografía y Fly Mood permanecen sin cambios. No se añadió backend, ML, 3D ni trabajo móvil.

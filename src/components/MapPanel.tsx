@@ -22,7 +22,7 @@ const mapStyle: StyleSpecification = {
     },
   },
   layers: [
-    { id: 'background', type: 'background', paint: { 'background-color': '#103b66' } },
+    { id: 'background', type: 'background', paint: { 'background-color': '#1b2225' } },
     { id: 'osm', type: 'raster', source: 'osm', paint: { 'raster-saturation': -0.88, 'raster-contrast': 0.08, 'raster-brightness-max': 0.86 } },
   ],
 }
@@ -43,6 +43,8 @@ export function MapPanel({ plan, state }: MapPanelProps) {
       zoom: 11.2,
       attributionControl: false,
     })
+    const bounds = geometry.coordinates.reduce((current, coordinate) => current.extend(coordinate), new maplibregl.LngLatBounds(geometry.coordinates[0], geometry.coordinates[0]))
+    const fitRoute = () => map.fitBounds(bounds as LngLatBoundsLike, { padding: { top: 55, bottom: 75, left: 65, right: 135 }, duration: 0 })
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left')
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
     map.on('load', () => {
@@ -56,7 +58,7 @@ export function MapPanel({ plan, state }: MapPanelProps) {
         type: 'geojson',
         data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } },
       })
-      map.addLayer({ id: 'progress-line', type: 'line', source: 'progress', paint: { 'line-color': '#5ce1f5', 'line-width': 4 } })
+      map.addLayer({ id: 'progress-line', type: 'line', source: 'progress', paint: { 'line-color': '#7cb9c0', 'line-width': 4 } })
       const routeLocations = new Set(plan.route.segments.flatMap((segment) => [segment.from, segment.to]))
       LOCATIONS.filter((location) => routeLocations.has(location.id)).forEach((location) => {
         const element = document.createElement('div')
@@ -72,14 +74,18 @@ export function MapPanel({ plan, state }: MapPanelProps) {
       })
       const flyElement = document.createElement('div')
       flyElement.className = 'map-fly'
+      flyElement.setAttribute('role', 'img')
+      flyElement.setAttribute('aria-label', 'MF-01 · posición actual')
       flyElement.innerHTML = '<svg viewBox="0 0 40 40" aria-hidden="true"><g stroke="#082750" stroke-width="1.2"><path d="m18 18-9-8m10 12-13 1m13 2-8 12m11-19 9-8m-10 12 13 1m-13 2 8 12" fill="none" stroke="#e6b46d"/><ellipse cx="20" cy="26" rx="5" ry="9" fill="#c98d4d"/><path d="m16 26 8 0m-8 4h8"/><ellipse cx="12" cy="23" rx="5" ry="10" transform="rotate(35 12 23)" fill="#69c8ee" fill-opacity=".8"/><ellipse cx="28" cy="23" rx="5" ry="10" transform="rotate(-35 28 23)" fill="#69c8ee" fill-opacity=".8"/><ellipse cx="20" cy="18" rx="5" ry="7" fill="#c98d4d"/><circle cx="17" cy="10" r="4" fill="#e48860"/><circle cx="23" cy="10" r="4" fill="#e48860"/></g></svg>'
       markerRef.current = new maplibregl.Marker({ element: flyElement }).setLngLat(getLocation('work-costa-del-este').coordinates).addTo(map)
-      const bounds = geometry.coordinates.reduce((current, coordinate) => current.extend(coordinate), new maplibregl.LngLatBounds(geometry.coordinates[0], geometry.coordinates[0]))
-      map.fitBounds(bounds as LngLatBoundsLike, { padding: { top: 55, bottom: 75, left: 65, right: 135 }, duration: 0 })
+      fitRoute()
       setReady(true)
     })
     mapRef.current = map
-    const resizeObserver = new ResizeObserver(() => map.resize())
+    const resizeObserver = new ResizeObserver(() => {
+      map.resize()
+      if (map.getSource('route')) fitRoute()
+    })
     resizeObserver.observe(containerRef.current)
     return () => {
       resizeObserver.disconnect()
@@ -98,7 +104,9 @@ export function MapPanel({ plan, state }: MapPanelProps) {
       : { coordinate: getLocation('utp').coordinates, traveled: [] }
     markerRef.current.setLngLat(coordinate)
     const map = mapRef.current
-    if (map?.isStyleLoaded()) {
+    // The sources exist after `load`. Waiting for every raster tile again can
+    // skip the only progress update when reviewing an already-completed trip.
+    if (map) {
       const completedCoordinates = plan.segmentRuns
         .filter((run) => run.endMinute <= state.elapsedMinutes)
         .flatMap((run) => segmentPath(run.segment))
@@ -111,7 +119,7 @@ export function MapPanel({ plan, state }: MapPanelProps) {
 
   return (
     <section className="map-panel instrument-panel" aria-label="Mapa del recorrido">
-      <div className="panel-label"><span>01 / RECORRIDO</span><span>OPENSTREETMAP</span></div>
+      <div className="panel-label"><span>El recorrido de MF-01</span></div>
       <div ref={containerRef} className="map-panel__canvas" />
       <div className="map-panel__legend"><span><i className="legend-dot legend-dot--origin" />Costa del Este</span><span><i className="legend-dot legend-dot--destination" />UTP</span><small>Trazado aproximado · no es navegación</small></div>
     </section>

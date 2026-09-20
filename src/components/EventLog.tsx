@@ -13,7 +13,7 @@ export function EventLog({ events }: EventLogProps) {
   }, [events.length])
   return (
     <section className="event-log instrument-panel">
-      <div className="panel-label"><span>03 / LO QUE VA PASANDO</span><span>{events.length.toString().padStart(2, '0')} EVENTOS</span></div>
+      <div className="panel-label"><span>Registro del viaje</span><span>{events.length} eventos</span></div>
       <div className="event-log__body" ref={logRef} aria-live="polite" role="log">
         {events.map((event) => (
           <div className={`event-entry event-entry--${event.tone}`} key={event.id}>

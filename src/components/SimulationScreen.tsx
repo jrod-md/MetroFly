@@ -1,19 +1,17 @@
-import { lazy, Suspense, useEffect, useMemo, useReducer, useRef } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { SIMULATION_TIMING } from '../data/scenarios'
 import { createSimulationResult, getSimulationState } from '../simulation/engine'
 import { playbackReducer } from '../simulation/playback'
 import { PlaybackControls } from './PlaybackControls'
-import { CompletionSummary } from './CompletionSummary'
 import { buildMoodHistory } from '../simulation/mood'
 import type { MoodSnapshot, SimulationPlan } from '../types/simulation'
 import { EventLog } from './EventLog'
-import { FlyPanel } from './FlyPanel'
-import { MoodBars } from './MoodBars'
-import { NeuralPanel } from './NeuralPanel'
-import { StatusPanel } from './StatusPanel'
+import { FlyAvatar } from './FlyAvatar'
+import { FlyBrain } from './FlyBrain'
+import { getLocation } from '../data/geo'
+import { formatClock, formatTimeFromElapsed } from '../utils/time'
 
 const MapPanel = lazy(() => import('./MapPanel').then((module) => ({ default: module.MapPanel })))
-const MoodHistory = lazy(() => import('./MoodHistory').then((module) => ({ default: module.MoodHistory })))
 
 interface SimulationScreenProps {
   plan: SimulationPlan
@@ -28,13 +26,16 @@ interface SimulationScreenProps {
 export function SimulationScreen({ plan, onComplete, completed = false, onSummary, onRerun, onCompare, onChooseRoute }: SimulationScreenProps) {
   const [playback, dispatch] = useReducer(playbackReducer, { minute: completed ? plan.totalMinutes : 0, total: plan.totalMinutes, speed: 'normal', mode: completed ? 'finished' : 'running' })
   const reported = useRef(completed)
+  const [logOpen, setLogOpen] = useState(false)
   const elapsed = playback.minute
   const moodHistory = useMemo(() => buildMoodHistory(plan), [plan])
   const state = useMemo(() => getSimulationState(plan, elapsed), [plan, elapsed])
-  const visibleMoodHistory = moodHistory.slice(0, elapsed + 1)
-  const currentMood = visibleMoodHistory.at(-1) ?? moodHistory[0]
+  const currentMood = moodHistory[elapsed] ?? moodHistory[0]
   const result = useMemo(() => createSimulationResult(plan, moodHistory), [plan, moodHistory])
-  const restart = () => { reported.current = false; dispatch({ type: 'restart' }) }
+  const restart = () => { reported.current = false; setLogOpen(false); dispatch({ type: 'restart' }) }
+  const event = state.events.at(-1)
+  const segment = state.currentSegment?.segment
+  const situation = state.finished ? 'UTP. Por fin.' : segment?.bottleneck ? 'Atrapada en Ricardo J. Alfaro.' : state.currentSegmentType === 'wait' ? 'Still waiting.' : segment?.name ?? 'Saliendo del trabajo.'
 
   useEffect(() => {
     if (playback.mode === 'finished' && !reported.current) {
@@ -47,36 +48,40 @@ export function SimulationScreen({ plan, onComplete, completed = false, onSummar
   }, [elapsed, moodHistory, onComplete, playback.mode, playback.speed])
 
   return (
-    <main className="simulation-shell">
-      <header className="simulation-header">
-        <div><span className="status-dot status-dot--live" /> METROFLY</div>
-        <strong>LA CLASE DE LAS 6</strong>
-        <span>SEMILLA {plan.seed} · {plan.route.name}</span>
+    <main className="commute-screen">
+      <header className="commute-header">
+        <div className="commute-brand"><strong>MetroFly</strong><span>The 6 PM Class</span></div>
+        <div className="commute-mission"><span>Costa del Este → UTP</span><strong>Una mosca. Tu viaje al salir del trabajo.</strong><small>Salida 17:00 · Clase 18:00</small></div>
+        <div className={`commute-clock${state.classStarted ? ' is-late' : ''}`}><time>{formatClock(state.currentTime)}</time><span>{state.finished ? state.lateMinutes ? `${state.lateMinutes} min tarde` : 'Llegamos a tiempo' : state.classStarted ? elapsed === 60 ? 'Class has started.' : `La clase empezó hace ${state.lateMinutes} min` : `${60 - elapsed} min para llegar`}</span></div>
       </header>
-      <div className="playback-dock"><PlaybackControls playback={playback} dispatch={dispatch} onRestart={restart} />
-        {state.finished && <CompletionSummary result={result} onSummary={onSummary} onRerun={onRerun} onCompare={onCompare} onChooseRoute={onChooseRoute} />}
+      <div className="commute-toolbar">
+        <div className="commute-route"><strong>{plan.route.name}</strong><span>Semilla {plan.seed}</span></div>
+        <PlaybackControls playback={playback} dispatch={dispatch} onRestart={restart} />
       </div>
-      <ol className="journey-stages" aria-label="Etapas del recorrido" style={{ gridTemplateColumns: `repeat(${plan.segmentRuns.length}, minmax(0, 1fr))` }}>
-        {plan.segmentRuns.map((run, index) => (
-          <li key={run.segment.id} aria-current={state.currentSegment === run ? 'step' : undefined} className={`${run.endMinute <= elapsed ? 'is-complete' : state.currentSegment === run ? 'is-current' : ''} ${run.segment.bottleneck ? 'is-bottleneck' : ''}`}>
-            <span>{String(index + 1).padStart(2, '0')} / {run.endMinute <= elapsed ? 'COMPLETADO' : state.currentSegment === run ? 'AHORA' : 'POR DELANTE'}</span>
-            <strong>{run.segment.name}</strong>
-          </li>
-        ))}
-      </ol>
-      <div className="simulation-grid">
-        <Suspense fallback={<section className="map-panel instrument-panel panel-loading"><div className="loading-line" /><span>CARGANDO EL MAPA</span></section>}>
+      <div className="commute-stage">
+        <Suspense fallback={<section className="map-panel panel-loading"><span>Cargando el mapa del recorrido…</span></section>}>
           <MapPanel plan={plan} state={state} />
         </Suspense>
-        <StatusPanel plan={plan} state={state} />
-        <EventLog events={state.events} />
-        <FlyPanel state={state} paused={playback.mode === 'paused'} />
-        <Suspense fallback={<section className="mood-history instrument-panel panel-loading"><div className="loading-line" /><span>CARGANDO HISTORIAL</span></section>}>
-          <MoodHistory history={visibleMoodHistory} />
-        </Suspense>
-        {currentMood && <MoodBars mood={currentMood} />}
-        <NeuralPanel plan={plan} state={state} paused={playback.mode === 'paused'} />
+        <aside className="commute-subject" aria-label="Estado de MF-01">
+          <div className="subject-identity"><strong>MF-01</strong><span>Drosophila melanogaster</span></div>
+          <FlyAvatar state={state} paused={playback.mode === 'paused'} />
+          <div className="subject-situation"><span>{segment && segment.from !== segment.to ? 'Desde ' : ''}{getLocation(state.currentLocation).name}</span><h1>{situation}</h1><p>{state.finished ? 'Still operational.' : segment?.to !== segment?.from && segment ? `Hacia ${getLocation(segment.to).name}` : 'El bus llegará cuando llegue.'}</p></div>
+          {state.finished ? <section className="arrival-summary" aria-label="Resultado final">
+            <dl><div><dt>Viaje</dt><dd>{result.totalMinutes} min</dd></div><div><dt>Espera</dt><dd>{result.waitingMinutes} min</dd></div><div><dt>Transporte</dt><dd>{result.travelMinutes} min</dd></div><div><dt>A pie / conexiones</dt><dd>{result.walkingMinutes} min</dd></div></dl>
+            <button className="button button--primary" onClick={onSummary}>Ver resultado</button>
+            <div className="arrival-actions"><button className="text-button" onClick={onRerun}>Otro intento</button><button className="text-button" onClick={onChooseRoute}>Otra ruta</button><button className="text-button" onClick={onCompare}>Comparar</button></div>
+          </section> : <section className="narrative-mood" aria-label="Ánimo narrativo">
+            {([{ key: 'hope', label: 'Esperanza' }, { key: 'anxiety', label: 'Ansiedad' }, { key: 'regret', label: 'Arrepentimiento' }] as const).map(({ key, label }) => <div className={`narrative-meter narrative-meter--${key}`} key={key}><label htmlFor={`mood-${key}`}>{label}</label><meter id={`mood-${key}`} min={0} max={100} value={currentMood[key]} /><span>{currentMood[key]}</span></div>)}
+            <small>Ánimo ficticio, no una medición biológica.</small>
+          </section>}
+          {!state.finished && <FlyBrain plan={plan} state={state} />}
+        </aside>
       </div>
+      <footer className="commute-event">
+        <div aria-live="polite" aria-atomic="true"><time>{event ? formatTimeFromElapsed(event.atMinute) : '17:00'}</time><p>{event?.message ?? 'MF-01 sale del trabajo. La clase empieza a las seis.'}</p></div>
+        <button className="text-button" aria-expanded={logOpen} aria-controls="journey-log" onClick={() => setLogOpen(!logOpen)}>{logOpen ? 'Cerrar registro' : 'Ver registro del viaje'} {logOpen ? '↓' : '↑'}</button>
+        {logOpen && <div id="journey-log" className="journey-log"><EventLog events={state.events} /></div>}
+      </footer>
     </main>
   )
 }
