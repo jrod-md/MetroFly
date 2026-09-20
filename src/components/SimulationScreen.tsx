@@ -70,9 +70,9 @@ export function SimulationScreen({ plan, onComplete, completed = false, onSummar
             <dl><div><dt>Viaje</dt><dd>{result.totalMinutes} min</dd></div><div><dt>Espera</dt><dd>{result.waitingMinutes} min</dd></div><div><dt>Transporte</dt><dd>{result.travelMinutes} min</dd></div><div><dt>A pie / conexiones</dt><dd>{result.walkingMinutes} min</dd></div></dl>
             <button className="button button--primary" onClick={onSummary}>Ver resultado</button>
             <div className="arrival-actions"><button className="text-button" onClick={onRerun}>Otro intento</button><button className="text-button" onClick={onChooseRoute}>Otra ruta</button><button className="text-button" onClick={onCompare}>Comparar</button></div>
-          </section> : <section className="narrative-mood" aria-label="Ánimo narrativo">
+          </section> : <section className="narrative-mood" aria-label="Estado narrativo simulado">
             {([{ key: 'hope', label: 'Esperanza' }, { key: 'anxiety', label: 'Sufrimiento' }, { key: 'regret', label: 'Arrepentimiento' }] as const).map(({ key, label }) => <div className={`narrative-meter narrative-meter--${key}`} key={key}><label htmlFor={`mood-${key}`}>{label}</label><meter id={`mood-${key}`} min={0} max={100} value={currentMood[key]} /><span>{currentMood[key]}</span></div>)}
-            <small>Ánimo ficticio, no una medición biológica.</small>
+            <small><strong>Estado narrativo simulado.</strong> Modelo independiente de MaleCNS: interpreta condiciones del viaje, no emociones medidas.</small>
           </section>}
           {!state.finished && <FlyBrain plan={plan} state={state} paused={playback.mode === 'paused'} />}
         </aside>

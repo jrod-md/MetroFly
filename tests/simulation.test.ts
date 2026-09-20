@@ -57,17 +57,21 @@ test('Seed replay, zero-wait transitions, time accounting and preserved routes',
   assert.equal(getSimulationState(zeroWaitPlan, zeroWaitPlan.segmentRuns[1].startMinute).currentSegment?.segment.type, 'bus')
 })
 
-test('Narrative pressure builds in final bottleneck and all six moods remain bounded', () => {
+test('Narrative state is deterministic, independent of MaleCNS, persistent and bounded', () => {
   for (const seed of [42, 4242, 12345, 99999]) {
     const plan = createSimulationPlan(route, seed)
     const history = buildMoodHistory(plan)
     const lastBus = plan.segmentRuns.find(run => run.segment.bottleneck)!
     assert.ok(history[lastBus.startMinute].anxiety < 45, 'Early legs should retain optimism')
-    assert.ok(history[plan.totalMinutes - 1].anxiety > history[lastBus.startMinute].anxiety + 35)
+    assert.ok(history[plan.totalMinutes - 1].anxiety > history[lastBus.startMinute].anxiety + 12, 'Prolonged final conditions should raise narrative suffering')
     const firstBusStart = plan.segmentRuns[2].startMinute
-    assert.ok(history[firstBusStart + 10].hope < history[firstBusStart].hope, 'Fractional minute changes must accumulate between events')
+    assert.ok(history[firstBusStart + 10].hope > 40, 'Successful early progress should retain feasible hope')
     assert.ok(history[60].resignation > history[59].resignation)
     for (const mood of history) for (const key of ['hope', 'anxiety', 'confusion', 'regret', 'relief', 'resignation'] as const) assert.ok(mood[key] >= 0 && mood[key] <= 100)
+    for (const mood of history) for (const key of ['arousal', 'negativeValence', 'persistence', 'deadlinePressure'] as const) assert.ok(mood[key] >= 0 && mood[key] <= 1)
+    assert.ok(history[60].deadlinePressure >= history[59].deadlinePressure)
+    assert.ok(history[lastBus.startMinute + 1].persistence >= history[lastBus.startMinute].persistence - .02)
+    assert.deepEqual(buildMoodHistory(plan), history, 'Narrative history is derived only from the deterministic commute plan')
   }
 })
 

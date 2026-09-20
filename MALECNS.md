@@ -123,6 +123,14 @@ Los pulsos coincidentes se combinan por máximo, no por suma. Si no hay nodos de
 
 La historia neural se deriva exclusivamente de grafo, eventos y duración. No recibe `MoodState`. Pausar conserva exactamente el minuto; reiniciar reproduce la misma historia; al finalizar se conserva la actividad del último minuto, sin un salto artificial a basal. La ruta y la semilla no cambian.
 
+## Estado narrativo, separado de MaleCNS
+
+MetroFly modela arousal, valencia negativa, persistencia y presión de deadline con
+condiciones del viaje, no con actividad neural, body IDs, conectividad o geometría.
+La interfaz traduce esas dimensiones a Esperanza, Sufrimiento y Arrepentimiento como
+interpretaciones narrativas antropomórficas. No son anotaciones MaleCNS ni evidencia
+de emociones biológicas de *Drosophila*.
+
 ## Validación y límites
 
 - `npm run typecheck` y `npm run build`: pasan. Advertencia de tamaño de chunk de MapLibre existente, no un error.

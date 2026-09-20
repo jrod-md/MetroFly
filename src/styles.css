@@ -158,7 +158,8 @@ button:active:not(:disabled) { transform: translateY(1px); }
 .fly-brain strong { font-weight: 500; }
 .fly-brain span { color: var(--muted); font-size: 10px; }
 .brain-canvas { position: relative; min-height: 560px; background: #0d1012; overflow: hidden; }
-.brain-canvas canvas { display: block; width: 100%; height: 100%; min-height: inherit; cursor: crosshair; }
+.brain-canvas canvas { display: block; width: 100%; height: 100%; min-height: inherit; cursor: grab; touch-action: none; }
+.brain-canvas canvas.is-dragging { cursor: grabbing; }
 .brain-canvas > span { position: absolute; left: 12px; bottom: 10px; color: var(--cyan-light); font: 10px var(--mono); pointer-events: none; }
 .brain-canvas--compact { min-height: 108px; margin: 7px 0 8px; border: 1px solid #2e464c; }
 .brain-canvas--compact canvas { cursor: default; }
@@ -210,17 +211,24 @@ button:active:not(:disabled) { transform: translateY(1px); }
 .brain-report__intro .eyebrow { grid-column: 1 / -1; margin: 0; color: var(--cyan); }
 .brain-report__intro h1 { margin: 0; font-size: 58px; line-height: .95; letter-spacing: -.065em; font-weight: 500; }
 .brain-report__intro > p:last-child { margin: 0; max-width: 48ch; color: var(--muted); line-height: 1.65; }
-.brain-report__figure { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 28px; }
-.brain-report__figure > aside { padding-top: 20px; border-top: 1px solid #397480; }
-.brain-report__figure aside .eyebrow { color: var(--cyan); margin-bottom: 12px; }
-.brain-report__figure aside > strong, .brain-report__figure aside > span { display: block; }
-.brain-report__figure aside > strong { font: 36px var(--mono); color: var(--cyan-light); letter-spacing: -.05em; }
-.brain-report__figure aside > span { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.brain-report__figure dl, .neuron-inspector dl { margin: 30px 0; }
-.brain-report__figure dl div, .neuron-inspector dl div { padding: 12px 0; border-top: 1px solid var(--line); }
-.brain-report__figure dt, .neuron-inspector dt { color: var(--muted); font-size: 10px; }
-.brain-report__figure dd, .neuron-inspector dd { margin: 5px 0 0; font-size: 13px; line-height: 1.45; }
-.brain-report__figure small { color: var(--muted); font-size: 10px; line-height: 1.5; }
+.brain-report__figure { display: grid; grid-template-columns: minmax(0, 1fr) minmax(270px, 330px); gap: 24px; align-items: stretch; }
+.brain-report__viewer { position: relative; min-width: 0; }
+.brain-report__viewer .brain-canvas { height: 100%; }
+.brain-view-controls { position: absolute; right: 12px; top: 10px; display: flex; align-items: center; gap: 10px; padding: 5px 7px; background: color-mix(in srgb, var(--paper) 92%, transparent); border: 1px solid var(--line); }
+.brain-view-controls span { color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
+.brain-view-controls .text-button { color: var(--cyan-light); font-size: 10px; }
+.brain-view-help { position: absolute; left: 12px; top: 12px; color: var(--muted); font: 10px var(--mono); pointer-events: none; }
+.brain-inspector { padding: 20px 0 0; border-top: 1px solid #397480; min-width: 0; }
+.brain-inspector .eyebrow { color: var(--cyan); margin: 0 0 12px; }
+.brain-inspector h2 { margin: 0; color: var(--ink); font: 26px var(--mono); letter-spacing: -.04em; overflow-wrap: anywhere; }
+.brain-inspector dl { margin: 22px 0; }
+.brain-inspector dl div { padding: 10px 0; border-top: 1px solid var(--line); }
+.brain-inspector dt { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.brain-inspector dd { margin: 5px 0 0; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.brain-inspector__clear { color: var(--cyan-light); font-size: 10px; }
+.brain-inspector__empty { max-width: 27ch; padding-top: 2px; }
+.brain-inspector__empty > p:not(.eyebrow) { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.brain-inspector__empty small { display: block; margin-top: 18px; color: var(--cyan-light); font: 10px var(--mono); }
 .brain-facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 30px 0; border-bottom: 1px solid var(--line); }
 .brain-facts span, .brain-facts strong, .brain-facts small { display: block; }
 .brain-facts span { color: var(--cyan); font-size: 10px; }
@@ -230,17 +238,16 @@ button:active:not(:disabled) { transform: translateY(1px); }
 .brain-boundary { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; padding: 42px 0; border-bottom: 1px solid var(--line); }
 .brain-boundary h2 { margin: 0 0 10px; color: var(--cyan); font-size: 18px; font-weight: 500; }
 .brain-boundary p { color: var(--muted); max-width: 48ch; line-height: 1.65; margin: 0; }
+.brain-narrative-state { padding: 30px 0; border-bottom: 1px solid var(--line); max-width: 70ch; }
+.brain-narrative-state .eyebrow { color: var(--cyan); margin: 0 0 10px; }
+.brain-narrative-state p:last-child { margin: 0; color: var(--muted); line-height: 1.65; }
 .brain-groups { padding: 42px 0; border-bottom: 1px solid var(--line); }
-.brain-groups h2, .neuron-inspector h2 { margin: 0 0 18px; font-size: 24px; font-weight: 500; }
+.brain-groups h2 { margin: 0 0 18px; font-size: 24px; font-weight: 500; }
 .brain-groups details { border-top: 1px solid var(--line); }
 .brain-groups summary { display: flex; justify-content: space-between; padding: 16px 0; color: var(--cyan-light); }
 .brain-groups details > div { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 0 17px; }
 .brain-groups details button { border: 1px solid var(--line); color: var(--muted); background: transparent; border-radius: 3px; padding: 5px 7px; font: 10px var(--mono); }
 .brain-groups details button:hover, .brain-groups details button.is-selected { border-color: var(--cyan); color: var(--cyan-light); background: #153238; }
-.neuron-inspector { padding: 42px 0; max-width: 760px; }
-.neuron-inspector .eyebrow { color: var(--cyan); }
-.neuron-inspector dl { display: grid; grid-template-columns: 1fr 1fr; gap: 0 30px; }
-.neuron-inspector p:last-child { color: var(--muted); font-size: 12px; line-height: 1.65; }
 .comparison__header { padding: 40px 0 30px; }
 .comparison__header h1 { font-size: 40px; letter-spacing: -.045em; font-weight: 500; margin: 0; }
 .comparison__header p:last-child { color: var(--muted); font-size: 14px; }
@@ -258,4 +265,5 @@ button:active:not(:disabled) { transform: translateY(1px); }
 /* Desktop height adaptation only. Mobile is deliberately outside this reset. */
 @media (min-height: 950px) { .commute-screen { padding-inline: 40px; grid-template-rows: 110px 68px minmax(0, 1fr) 88px; } .commute-stage { grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; } .subject-situation h1 { font-size: 24px; } .narrative-meter { margin-block: 10px; } }
 @media (max-height: 800px) { .commute-subject > .fly-avatar { margin-bottom: 8px; min-height: 100px; } .subject-situation h1 { font-size: 19px; } .subject-situation p { margin-bottom: 10px; } .narrative-mood { margin-bottom: 10px; } .fly-brain { padding-top: 8px; } .fly-brain svg { height: 24px; margin-top: 5px; } .arrival-summary { margin-bottom: 8px; } .arrival-summary dl { gap: 6px; margin-bottom: 8px; } .landing h1 { font-size: 88px; } .route-row { padding-block: 19px; } }
+@media (max-width: 860px) { .brain-report__figure { grid-template-columns: 1fr; } .brain-report__viewer .brain-canvas { min-height: 460px; } .brain-inspector { padding-top: 20px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

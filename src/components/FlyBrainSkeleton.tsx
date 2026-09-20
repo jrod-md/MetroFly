@@ -8,6 +8,9 @@ interface FlyBrainSkeletonProps {
   activity: Activity
   paused?: boolean
   compact?: boolean
+  rotationEnabled?: boolean
+  resetViewToken?: number
+  onViewInteraction?: () => void
   selectedId?: number | null
   onSelect?: (bodyId: number) => void
   onData?: (data: SkeletonData | null) => void
@@ -26,13 +29,17 @@ function useReducedMotion() {
   return reduced
 }
 
-export function FlyBrainSkeleton({ activity, paused = false, compact = false, selectedId = null, onSelect, onData }: FlyBrainSkeletonProps) {
+export function FlyBrainSkeleton({ activity, paused = false, compact = false, rotationEnabled = true, resetViewToken = 0, selectedId = null, onSelect, onData, onViewInteraction }: FlyBrainSkeletonProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [data, setData] = useState<SkeletonData | null>(null)
   const [failed, setFailed] = useState(false)
   const reducedMotion = useReducedMotion()
   const activityRef = useRef(activity)
   const hitPoints = useRef<{ bodyId: number; x: number; y: number }[]>([])
+  const camera = useRef({ yaw: 0, pitch: -.42, zoom: 1 })
+  const pointer = useRef<{ id: number; x: number; y: number; dragging: boolean } | null>(null)
+  const dirty = useRef(true)
+  const [dragging, setDragging] = useState(false)
   activityRef.current = activity
 
   useEffect(() => {
@@ -41,26 +48,28 @@ export function FlyBrainSkeleton({ activity, paused = false, compact = false, se
     return () => { alive = false }
   }, [onData])
 
+  useEffect(() => { camera.current = { yaw: 0, pitch: -.42, zoom: 1 }; dirty.current = true }, [resetViewToken])
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || !data) return
     const context = canvas.getContext('2d')
     if (!context) return
-    let frame = 0, last = 0, rotation = 0
-    const pitch = -0.42
-    const rotate = shouldAutoRotate(compact, paused, reducedMotion)
+    let frame = 0, last = 0
+    const rotate = shouldAutoRotate(compact, paused || !rotationEnabled, reducedMotion)
     const draw = (time: number) => {
       if (document.hidden) { frame = requestAnimationFrame(draw); return }
-      if (time - last < (rotate ? 66 : 250)) { frame = requestAnimationFrame(draw); return }
+      if (!dirty.current && time - last < (rotate ? 66 : 250)) { frame = requestAnimationFrame(draw); return }
       const elapsed = last ? time - last : 0
       last = time
-      if (rotate) rotation = (rotation + elapsed / 45000 * Math.PI * 2) % (Math.PI * 2)
+      if (rotate) camera.current.yaw = (camera.current.yaw + elapsed / 45000 * Math.PI * 2) % (Math.PI * 2)
+      dirty.current = false
       const width = Math.max(1, canvas.clientWidth), height = Math.max(1, canvas.clientHeight)
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
       if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) { canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr) }
       context.setTransform(dpr, 0, 0, dpr, 0, 0)
       context.clearRect(0, 0, width, height)
-      const cosine = Math.cos(rotation), sine = Math.sin(rotation), cp = Math.cos(pitch), sp = Math.sin(pitch)
+      const cosine = Math.cos(camera.current.yaw), sine = Math.sin(camera.current.yaw), cp = Math.cos(camera.current.pitch), sp = Math.sin(camera.current.pitch)
       const project = (point: { x: number; y: number; z: number }) => {
         const x = (point.x - data.metadata.normalization.center[0]) / data.metadata.normalization.scale
         const y = (point.y - data.metadata.normalization.center[1]) / data.metadata.normalization.scale
@@ -71,14 +80,14 @@ export function FlyBrainSkeleton({ activity, paused = false, compact = false, se
       }
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
       for (const neuron of data.neurons) for (const point of neuron.points) { const [x, y] = project(point); minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y) }
-      const padding = compact ? .1 : .09, scale = Math.min(width * (1 - padding * 2) / (maxX - minX || 1), height * (1 - padding * 2) / (maxY - minY || 1))
+      const padding = compact ? .1 : .09, scale = Math.min(width * (1 - padding * 2) / (maxX - minX || 1), height * (1 - padding * 2) / (maxY - minY || 1)) * camera.current.zoom
       const offsetX = (width - (minX + maxX) * scale) / 2, offsetY = (height - (minY + maxY) * scale) / 2
       const nextHitPoints: { bodyId: number; x: number; y: number }[] = []
       for (const neuron of data.neurons) {
         const value = clamp(activityRef.current[neuron.activityKey] ?? .02)
         const selected = selectedId === neuron.bodyId
         const [r, g, b] = SKELETON_COLORS[neuron.role]
-        const alpha = selected ? 1 : .11 + value * (compact ? .6 : .72)
+        const alpha = selected ? 1 : selectedId === null ? .11 + value * (compact ? .6 : .72) : .07 + value * .35
         context.beginPath()
         const parent = new Map(neuron.points.map(point => [point.id, point]))
         for (let index = 0; index < neuron.points.length; index++) {
@@ -102,18 +111,41 @@ export function FlyBrainSkeleton({ activity, paused = false, compact = false, se
     }
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)
-  }, [compact, data, paused, reducedMotion, selectedId])
+  }, [compact, data, paused, reducedMotion, rotationEnabled, selectedId])
 
-  const label = useMemo(() => data ? `${data.metadata.availableNeuronCount}/${data.metadata.requestedNeuronCount} centerline skeletons` : 'Loading real morphology', [data])
+  const label = useMemo(() => {
+    if (!data) return 'Loading real morphology'
+    const selected = data.neurons.find(neuron => neuron.bodyId === selectedId)
+    return selected ? `Neuron ${selected.type ?? selected.bodyId}, body ID ${selected.bodyId}, selected. ${data.metadata.availableNeuronCount}/${data.metadata.requestedNeuronCount} centerline skeletons` : `${data.metadata.availableNeuronCount}/${data.metadata.requestedNeuronCount} centerline skeletons`
+  }, [data, selectedId])
   if (failed) return <div className="brain-fallback">Real morphology unavailable. The commute continues without it.</div>
-  return <div className={`brain-canvas${compact ? ' brain-canvas--compact' : ''}`}><canvas ref={canvasRef} onClick={event => {
+  const selectAt = (canvas: HTMLCanvasElement, clientX: number, clientY: number) => {
     if (!onSelect) return
-    const bounds = event.currentTarget.getBoundingClientRect()
-    const x = event.clientX - bounds.left, y = event.clientY - bounds.top
+    const bounds = canvas.getBoundingClientRect()
+    const x = clientX - bounds.left, y = clientY - bounds.top
     const nearest = hitPoints.current.reduce<{ bodyId: number; distance: number } | null>((best, point) => {
       const distance = Math.hypot(point.x - x, point.y - y)
       return !best || distance < best.distance ? { bodyId: point.bodyId, distance } : best
     }, null)
     if (nearest && nearest.distance < 18) onSelect(nearest.bodyId)
-  }} aria-label={`${label}. Real MaleCNS morphology projected in Canvas 2D.`} role="img" /><span>{label}</span></div>
+  }
+  return <div className={`brain-canvas${compact ? ' brain-canvas--compact' : ''}`}><canvas ref={canvasRef} onPointerDown={event => {
+    if (compact) return
+    pointer.current = { id: event.pointerId, x: event.clientX, y: event.clientY, dragging: false }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }} onPointerMove={event => {
+    const active = pointer.current
+    if (!active || active.id !== event.pointerId) return
+    const dx = event.clientX - active.x, dy = event.clientY - active.y
+    if (!active.dragging && Math.hypot(dx, dy) > 5) { active.dragging = true; setDragging(true); onViewInteraction?.() }
+    if (active.dragging) { camera.current.yaw += dx * .008; camera.current.pitch = Math.max(-1.48, Math.min(1.48, camera.current.pitch + dy * .006)); active.x = event.clientX; active.y = event.clientY; dirty.current = true }
+  }} onPointerUp={event => {
+    const active = pointer.current
+    if (!active || active.id !== event.pointerId) return
+    pointer.current = null; setDragging(false)
+    if (!active.dragging) selectAt(event.currentTarget, event.clientX, event.clientY)
+  }} onPointerCancel={() => { pointer.current = null; setDragging(false) }} onWheel={event => {
+    if (compact) return
+    event.preventDefault(); camera.current.zoom = Math.max(.6, Math.min(5, camera.current.zoom * Math.exp(-event.deltaY * .0015))); dirty.current = true; onViewInteraction?.()
+  }} aria-label={`${label}. Real MaleCNS morphology projected in Canvas 2D.`} role="img" className={dragging ? 'is-dragging' : ''} /><span>{label}</span></div>
 }

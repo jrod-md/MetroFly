@@ -6,6 +6,7 @@ import { chooseGraph, layoutGraph, validateRealGraph } from '../src/neural/graph
 import { buildNeuralHistory, NEURAL_PARAMETERS, transitStimulus } from '../src/neural/activity'
 import { validateSkeletonData } from '../src/neural/skeletonValidation'
 import { SKELETON_COLORS, shouldAutoRotate } from '../src/neural/skeletonVisual'
+import { inspectSelectedNeuron, nextReportRotation } from '../src/neural/reportInspection'
 import { createSimulationPlan } from '../src/simulation/engine'
 import { getRoute } from '../src/data/routes'
 import { buildMoodHistory } from '../src/simulation/mood'
@@ -51,6 +52,28 @@ test('Skeleton color semantics and rotation respect simulated pause and reduced 
   assert.equal(shouldAutoRotate(true, false, false), false)
   assert.equal(shouldAutoRotate(false, true, false), false)
   assert.equal(shouldAutoRotate(false, false, true), false)
+})
+
+test('Report inspector starts quiet, maps verified selected metadata, clears, and pauses view rotation', () => {
+  const skeletons = validateSkeletonData(JSON.parse(readFileSync('src/data/generated/malecns_skeletons.json', 'utf8')))
+  const graph = chooseGraph(readFileSync('src/data/generated/malecns_visual_motor.json', 'utf8'), DEMO_NEURAL_GRAPH).graph
+  assert.equal(inspectSelectedNeuron(skeletons, graph, null), null)
+  const neuron = skeletons.neurons.find(item => item.bodyId === 10005) ?? skeletons.neurons[0]
+  const inspected = inspectSelectedNeuron(skeletons, graph, neuron.bodyId)
+  assert.ok(inspected)
+  assert.equal(inspected.bodyId, neuron.bodyId)
+  assert.equal(inspected.type, neuron.type)
+  assert.equal(inspected.instance, neuron.instance)
+  assert.equal(inspected.originalPointCount, neuron.originalPointCount)
+  assert.equal(inspected.simplifiedPointCount, neuron.simplifiedPointCount)
+  assert.equal(nextReportRotation(true, 'select'), false)
+  assert.equal(nextReportRotation(false, 'select'), false)
+  assert.equal(nextReportRotation(false, 'toggle'), true)
+  assert.equal(nextReportRotation(true, 'toggle'), false)
+  assert.equal(nextReportRotation(false, 'clear'), false)
+  assert.equal(inspectSelectedNeuron(skeletons, graph, null), null)
+  const reportSource = readFileSync('src/components/BrainReport.tsx', 'utf8')
+  assert.doesNotMatch(reportSource, /Selected morphology/)
 })
 // Synthetic schema fixture ONLY. Never bundled or written as a MaleCNS extract.
 function schemaFixture(): NeuralGraphData {

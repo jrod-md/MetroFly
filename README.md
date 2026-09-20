@@ -34,10 +34,10 @@ desde el navegador. Las corridas se guardan solo en memoria durante la sesión.
    cifras: total, espera, transporte y caminatas/conexiones. Se puede revisar el
    resultado, probar otra semilla, elegir otra ruta o comparar corridas.
 
-El ánimo visible se limita a esperanza, sufrimiento y arrepentimiento. Los seis
-estados internos del modelo narrativo anterior se conservan para compatibilidad
-y comparación; no se muestran series temporales ni seis gráficas. **El ánimo es
-ficción narrativa, no una inferencia neurocientífica.**
+El estado visible se limita a esperanza, sufrimiento y arrepentimiento. Son salidas
+de un estado narrativo simulado: MetroFly calcula arousal, valencia negativa,
+persistencia y presión de deadline a partir de las condiciones del viaje. Es
+deliberadamente antropomórfico, independiente de MaleCNS y no mide emociones biológicas.
 
 ## Tres rutas, mismos parámetros
 
@@ -130,6 +130,17 @@ aparece solamente después del resultado.
 La UI usa grafito, texto marfil, cian moderado, coral para retraso y ámbar para MF-01.
 Sans-serif para lectura; mono para reloj, semilla e identificadores. No se ha
 diseñado ni validado móvil. La vista principal presupone un escritorio ≥1100 px.
+
+## Estado narrativo simulado
+
+El modelo usa únicamente el plan determinista del viaje: espera acumulada, cuello de
+botella, incertidumbre, eventos, progreso, tardanza y presión de deadline. Arousal se
+aproxima 44 % por minuto a un objetivo de urgencia; valencia negativa, 28 %. La memoria
+usa `0.88 × persistencia previa + 0.12 × valencia negativa`. Sufrimiento = `100 ×
+(0.50 valencia negativa + 0.25 arousal + 0.25 persistencia)`. Esperanza se basa en
+factibilidad, presión, incertidumbre, progreso y eventos favorables. Arrepentimiento
+compara el resultado con la referencia de la propia ruta, o con su baseline simulado
+cuando no hay referencia. Ninguno de estos valores recibe actividad MaleCNS.
 
 ## Comprobaciones
 

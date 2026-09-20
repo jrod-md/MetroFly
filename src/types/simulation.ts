@@ -44,7 +44,14 @@ export interface SimulationPlan {
   totalMinutes: number
 }
 
-export interface MoodState {
+export interface NarrativeInternalState {
+  arousal: number
+  negativeValence: number
+  persistence: number
+  deadlinePressure: number
+}
+
+export interface MoodState extends NarrativeInternalState {
   hope: number
   anxiety: number
   confusion: number
