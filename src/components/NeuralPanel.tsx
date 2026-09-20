@@ -17,14 +17,16 @@ export function NeuralPanel({ plan, state, paused = false }: { plan: SimulationP
   const selected = graph.nodes.find(node => node.id === selectedId)
   const connected = graph.edges.filter(edge => edge.source === selectedId || edge.target === selectedId)
   const real = graph.metadata.realConnectivity
+  const activeCount = graph.nodes.filter(node => frame.values[node.id] >= 0.1).length
   return (
     <section className={`neural-panel instrument-panel${paused || state.finished ? ' is-frozen' : ''}`} aria-label="Male CNS Activity">
       <div className="panel-label"><span>07 / MALE CNS ACTIVITY</span><span>{graph.nodes.length} NODOS / {graph.edges.length} CONEXIONES</span></div>
-      <div className="neural-provenance"><strong>{real ? 'REAL CONNECTIVITY' : 'DEMO GRAPH'}</strong><span>{graph.metadata.dataset}</span><span>SIMPLIFIED ACTIVITY</span></div>
+      <div className="neural-provenance"><strong>{real ? 'REAL CONNECTIVITY' : 'DEMO GRAPH'}</strong><span>{graph.metadata.dataset}</span><span>SIMPLIFIED ACTIVITY</span><span>{activeCount} ACTIVOS ≥10</span></div>
       {notice && <p className="neural-notice">{notice}</p>}
       <div className="neural-context"><span>{paused ? 'EN PAUSA' : state.finished ? 'REGISTRO FINAL' : 'ESTÍMULO ACTUAL'}</span><p>{frame.stimulus}</p></div>
       <div className="neural-panel__body">
         <svg className="neural-graph" viewBox="0 0 800 330" role="group" aria-label={`${real ? 'Conectividad MaleCNS' : 'Grafo sintético'}. Selecciona un nodo para inspeccionar sus conexiones. Brillo: actividad simulada.`}>
+          <defs><marker id="neural-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="currentColor" /></marker></defs>
           {NEURAL_CATEGORIES.map((category, index) => <g key={category.id}>
             <rect x={index * 195 + 12} y="35" width="183" height="280" rx="12" fill={category.color} fillOpacity=".035" stroke={category.color} strokeOpacity=".2" />
             <text x={index * 195 + 103} y="20" textAnchor="middle" fill={category.color}>{category.label}</text>
@@ -33,7 +35,7 @@ export function NeuralPanel({ plan, state, paused = false }: { plan: SimulationP
             const source = positions.get(edge.source)!, target = positions.get(edge.target)!
             const related = edge.source === selectedId || edge.target === selectedId
             const level = frame.values[edge.source]
-            return <path key={`${edge.source}-${edge.target}`} className="neural-edge" style={{ stroke: related ? '#68b9ff' : '#346495', opacity: (related ? 0.5 : 0.16) + level * 0.4, strokeWidth: 0.6 + 2 * Math.sqrt(edge.weight / maxWeight) }} d={`M${source.x} ${source.y} C${(source.x + target.x) / 2 + 20} ${source.y - 18}, ${(source.x + target.x) / 2 - 20} ${target.y + 18}, ${target.x} ${target.y}`}><title>{edge.source} → {edge.target}: {edge.weight} {real ? 'sinapsis' : 'peso sintético'}</title></path>
+            return <path key={`${edge.source}-${edge.target}`} className="neural-edge" markerEnd="url(#neural-arrow)" style={{ color: related ? '#68b9ff' : '#346495', stroke: 'currentColor', opacity: (related ? 0.5 : 0.16) + level * 0.4, strokeWidth: 0.6 + 2 * Math.sqrt(edge.weight / maxWeight) }} d={`M${source.x} ${source.y} C${(source.x + target.x) / 2 + 20} ${source.y - 18}, ${(source.x + target.x) / 2 - 20} ${target.y + 18}, ${target.x} ${target.y}`}><title>{edge.source} → {edge.target}: {edge.weight} {real ? 'sinapsis' : 'peso sintético'}</title></path>
           })}
           {graph.nodes.map(node => {
             const point = positions.get(node.id)!
